@@ -1,0 +1,117 @@
+#
+# motor.db — Technosoft TML motor record template
+#
+# Macros:
+#   P     - PV prefix        (e.g. "TEST:")
+#   M     - Motor name       (e.g. "m1")
+#   DESC  - Description
+#   DTYP  - Device type      (default "asynMotor")
+#   PORT  - Asyn port name
+#   ADDR  - Axis number (0-based)
+#   DIR   - Direction (Pos/Neg)
+#   MRES  - Motor resolution (EGU/step)
+#   PREC  - Display precision
+#   EGU   - Engineering units
+#   DHLM  - Dial high limit
+#   DLLM  - Dial low limit
+#   VELO  - Velocity
+#   VBAS  - Base velocity
+#   ACCS  - Acceleration (seconds)
+#   BDST  - Backlash distance
+#   BVEL  - Backlash velocity
+#   BACC  - Backlash acceleration
+#   TWV   - Tweak value
+#   INIT  - Init string
+#   RTRY  - Retry count
+#   RSTM  - Restore mode (NearZero)
+
+record(motor, "$(P)$(M)") {
+  field(DESC, "$(DESC)")
+  field(DTYP, "$(DTYP=asynMotor)")
+  field(DIR,  "$(DIR=Pos)")
+  field(VBAS, "$(VBAS=0)")
+  field(ACCU, "$(ACCU=1)")
+  field(BDST, "$(BDST=0)")
+  field(BVEL, "$(BVEL=0)")
+  field(BACC, "$(BACC=0)")
+  field(OUT,  "@asyn($(PORT),$(ADDR))")
+  field(MRES, "$(MRES)")
+  field(PREC, "$(PREC=3)")
+  field(EGU,  "$(EGU=ustep)")
+  field(DHLM, "$(DHLM=0)")
+  field(DLLM, "$(DLLM=0)")
+  field(RTRY, "$(RTRY=10)")
+  field(INIT, "$(INIT=)")
+  field(RSTM, "$(RSTM=NearZero)")
+  field(TWV,  "$(TWV=1)")
+  field(SDIS, "$(P)$(M)_able.VAL")
+  field(VMAX, "$(VELO)")
+  field(VELO, "$(VELO)")
+  field(ACCS, "$(ACCS=1)")
+}
+
+record(bo, "$(P)$(M)_able") {
+  field(DESC, "motor enable/disable")
+  field(PINI, "YES")
+  field(OUT,  "$(P)$(M).DISP")
+  field(ZNAM, "Enable")
+  field(ONAM, "Disable")
+}
+
+#
+# Extra status register PVs (read-only)
+#
+record(longin, "$(P)$(M):SRH") {
+  field(DESC, "TML Status Register High")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_SRH")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(M):SRL") {
+  field(DESC, "TML Status Register Low")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_SRL")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(M):MER") {
+  field(DESC, "TML Motion Error Register")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_MER")
+  field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(P)$(M):SETUP") {
+  field(DESC, "TML setup file path")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_SETUP_FILE")
+  field(SCAN, "I/O Intr")
+}
+
+# Direction/offset/resolution forwarding to driver
+record(longout, "$(P)$(M)Direction") {
+  field(DESC, "$(M) direction")
+  field(DOL,  "$(P)$(M).DIR CP MS")
+  field(OMSL, "closed_loop")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_DIRECTION")
+}
+
+record(ao, "$(P)$(M)Offset") {
+  field(DESC, "$(M) offset")
+  field(DOL,  "$(P)$(M).OFF CP MS")
+  field(OMSL, "closed_loop")
+  field(DTYP, "asynFloat64")
+  field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_OFFSET")
+  field(PREC, "$(PREC=3)")
+}
+
+record(ao, "$(P)$(M)Resolution") {
+  field(DESC, "$(M) resolution")
+  field(DOL,  "$(P)$(M).MRES CP MS")
+  field(OMSL, "closed_loop")
+  field(DTYP, "asynFloat64")
+  field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_RESOLUTION")
+  field(PREC, "$(PREC=3)")
+}

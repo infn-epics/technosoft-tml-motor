@@ -1,0 +1,2 @@
+registrar(TmlMotorRegister)
+variable(drvTmlDebug, int)

@@ -1,0 +1,8 @@
+file "$(TOP)/db/motor.db"
+{
+    pattern
+    { P,          M,    DESC,             PORT,        ADDR, MRES,  EGU,    DHLM,    DLLM,    VELO, ACCS, TWV }
+    { "TML:AX0:", "m1", "TML Multi Ax0", "TML-MULTI", 0,   1.0,   "ustep", 100000, -100000,  15,   0.5,  100 }
+    { "TML:AX1:", "m1", "TML Multi Ax1", "TML-MULTI", 1,   1.0,   "ustep", 100000, -100000,  15,   0.5,  100 }
+    { "TML:AX2:", "m1", "TML Multi Ax2", "TML-MULTI", 2,   1.0,   "ustep", 100000, -100000,  15,   0.5,  100 }
+}
