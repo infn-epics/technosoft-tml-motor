@@ -15,7 +15,7 @@ technosoft_DBD += devTechnosoft.dbd
 # -------------------------------------------------------
 # TML library paths (needed at link time)
 # -------------------------------------------------------
-USR_LDFLAGS += -L$(TML_LIB)/lib
+USR_LDFLAGS += -L$(MOT_TML_LIB)/lib
 
 # -------------------------------------------------------
 # Sources — only the IOC main and register glue

@@ -11,12 +11,12 @@ DBD += devTechnosoft.dbd
 # -------------------------------------------------------
 # TML library paths
 # -------------------------------------------------------
-USR_CPPFLAGS += -I$(TML_LIB)/include
-USR_LDFLAGS  += -L$(TML_LIB)/lib
+USR_CPPFLAGS += -I$(MOT_TML_LIB)/include
+USR_LDFLAGS  += -L$(MOT_TML_LIB)/lib
 
 # Install vendor shared libraries so downstream IOCs find them at runtime
-LIB_INSTALLS += $(TML_LIB)/lib/libTML_lib.so
-LIB_INSTALLS += $(TML_LIB)/lib/libtmlcomm.so
+LIB_INSTALLS += $(MOT_TML_LIB)/lib/libTML_lib.so
+LIB_INSTALLS += $(MOT_TML_LIB)/lib/libtmlcomm.so
 
 # -------------------------------------------------------
 # Sources
