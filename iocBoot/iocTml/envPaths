@@ -1,0 +1,7 @@
+epicsEnvSet("IOC","iocTml")
+epicsEnvSet("TOP","/app/IOC-DEVEL/technosoft-asyn")
+epicsEnvSet("EPICS_BASE","/epics/epics-base/")
+epicsEnvSet("SUPPORT","/epics/epics-base//../support")
+epicsEnvSet("ASYN","/epics/epics-base//../support/asyn")
+epicsEnvSet("MOTOR","/epics/epics-base//../support/motor")
+epicsEnvSet("MOT_TML_LIB","/app/IOC-DEVEL/technosoft-asyn/tml_lib")

@@ -2,7 +2,10 @@
  * drvTmlMotor.h
  *
  * EPICS asynMotorController / asynMotorAxis driver for Technosoft
- * intelligent drives using the TML_lib high-level library.
+ * intelligent drives.
+ *
+ * Compile with  -DUSE_TML_NATIVE  to use the native serial protocol
+ * implementation (tmlSerial) instead of the proprietary TML_lib binary.
  *
  * Author:  Andrea Michelotti — INFN-LNF
  * Date:    2026-02

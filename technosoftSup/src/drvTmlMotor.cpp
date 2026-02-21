@@ -2,15 +2,18 @@
  * drvTmlMotor.cpp
  *
  * EPICS asynMotorController / asynMotorAxis driver for Technosoft
- * intelligent drives using the TML_lib high-level library.
+ * intelligent drives.
  *
  * Architecture
  * ------------
  *   TmlController  — one per RS-232/485/CAN/XPORT channel
  *   TmlAxis        — one per physical drive on the channel
  *
- * The TML_lib library is NOT thread-safe; every call is serialized
- * through tmlLock_ (an epicsMutex in the controller).
+ * The TML communication layer is NOT thread-safe; every call is
+ * serialized through tmlLock_ (an epicsMutex in the controller).
+ *
+ * Compile with  -DUSE_TML_NATIVE  to use the native serial protocol
+ * implementation instead of the proprietary TML_lib binary library.
  *
  * Author:  Andrea Michelotti — INFN-LNF
  * Date:    2026-02
@@ -26,7 +29,11 @@
 #include <iocsh.h>
 #include <asynOctetSyncIO.h>
 
-#include <TML_lib.h>
+#ifdef USE_TML_NATIVE
+#  include "tmlSerial.h"
+#else
+#  include <TML_lib.h>
+#endif
 #include "drvTmlMotor.h"
 
 /* Global debug level — settable from iocsh via "var drvTmlDebug N" */
