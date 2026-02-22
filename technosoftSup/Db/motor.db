@@ -89,6 +89,324 @@ record(stringin, "$(P)$(M):SETUP") {
   field(SCAN, "I/O Intr")
 }
 
+# Axis active/inactive flag (1 = initialized + power stage ON, 0 = not active)
+record(bi, "$(P)$(M):ACTIVE") {
+  field(DESC, "TML axis active state")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_ACTIVE")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Inactive")
+  field(ONAM, "Active")
+  field(ZSV,  "MINOR")
+  field(OSV,  "NO_ALARM")
+}
+
+# Human-readable fault description string
+record(stringin, "$(P)$(M):FAULT") {
+  field(DESC, "TML fault description")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_FAULT_TEXT")
+  field(SCAN, "I/O Intr")
+}
+
+# Additional TML status registers (read-only)
+record(longin, "$(P)$(M):MCR") {
+  field(DESC, "TML Motion Control Register")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_MCR")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(M):MSR") {
+  field(DESC, "TML Motion Status Register")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_MSR")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(M):ISR") {
+  field(DESC, "TML Interrupt Status Register")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_ISR")
+  field(SCAN, "I/O Intr")
+}
+
+# Actual encoder position (APOS) — high-resolution readback
+record(ai, "$(P)$(M):APOS") {
+  field(DESC, "TML actual encoder position")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_APOS")
+  field(SCAN, "I/O Intr")
+  field(PREC, "$(PREC=3)")
+  field(EGU,  "$(EGU=ustep)")
+}
+
+# Commanded speed readback (CSPD)
+record(ai, "$(P)$(M):CSPD") {
+  field(DESC, "TML commanded speed")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_CSPD")
+  field(SCAN, "I/O Intr")
+  field(PREC, "2")
+  field(EGU,  "IU/s")
+}
+
+# -------------------------------------------------------
+# TML Command records (write-only; write 1 to trigger)
+# -------------------------------------------------------
+
+# Reset faults (TS_ResetFault / FAULTR)
+record(bo, "$(P)$(M):CMD:RSTFAULT") {
+  field(DESC, "TML reset faults")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_RESET_FAULT")
+  field(ZNAM, "Idle")
+  field(ONAM, "Reset")
+  field(HIGH, "0.5")
+}
+
+# Save parameters to EEPROM
+record(bo, "$(P)$(M):CMD:SAVE") {
+  field(DESC, "TML save to EEPROM")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_SAVE_EEPROM")
+  field(ZNAM, "Idle")
+  field(ONAM, "Save")
+  field(HIGH, "0.5")
+}
+
+# Reset drive (TS_Reset)
+record(bo, "$(P)$(M):CMD:RESET") {
+  field(DESC, "TML reset drive")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_RESET_DRIVE")
+  field(ZNAM, "Idle")
+  field(ONAM, "Reset")
+  field(HIGH, "0.5")
+}
+
+# -------------------------------------------------------
+# Bit-decoded status fields (via CALC from raw registers)
+# Matches Technosoft TML Status Register definitions
+# -------------------------------------------------------
+
+# SRL bit 8  — Global fault
+record(calc, "$(P)$(M):SRL:GFLT") {
+  field(DESC, "TML SRL global fault")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>8)&1")
+}
+# SRL bit 9  — Axis fault
+record(calc, "$(P)$(M):SRL:AFLT") {
+  field(DESC, "TML SRL axis fault")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>9)&1")
+}
+# SRL bit 10 — Motion complete
+record(calc, "$(P)$(M):SRL:MC") {
+  field(DESC, "TML SRL motion complete")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>10)&1")
+}
+# SRL bit 15 — Axis ON (power stage)
+record(calc, "$(P)$(M):SRL:AXON") {
+  field(DESC, "TML SRL axis ON")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>15)&1")
+}
+
+# SRH bit 0  — Following/position error
+record(calc, "$(P)$(M):SRH:FERR") {
+  field(DESC, "TML SRH following error")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>0)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 1  — Over-speed
+record(calc, "$(P)$(M):SRH:OVSP") {
+  field(DESC, "TML SRH over-speed")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>1)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 2  — Over-current
+record(calc, "$(P)$(M):SRH:OCUR") {
+  field(DESC, "TML SRH over-current")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>2)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 4  — Over-temperature
+record(calc, "$(P)$(M):SRH:OTMP") {
+  field(DESC, "TML SRH over-temperature")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>4)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 5  — Under-voltage
+record(calc, "$(P)$(M):SRH:UVLT") {
+  field(DESC, "TML SRH under-voltage")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>5)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 6  — Over-voltage
+record(calc, "$(P)$(M):SRH:OVLT") {
+  field(DESC, "TML SRH over-voltage")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>6)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 15 — General fault (OR of all SRH faults)
+record(calc, "$(P)$(M):SRH:FLT") {
+  field(DESC, "TML SRH general fault")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>15)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 3  — I2T protection
+record(calc, "$(P)$(M):SRH:I2T") {
+  field(DESC, "TML SRH I2T protection")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>3)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# SRH bit 9  — In-position (position reference reached)
+record(calc, "$(P)$(M):SRH:INPOS") {
+  field(DESC, "TML SRH in-position")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>9)&1")
+}
+# SRH bit 10 — Motion complete
+record(calc, "$(P)$(M):SRH:MCOMPLETE") {
+  field(DESC, "TML SRH motion complete")
+  field(INPA, "$(P)$(M):SRH CP MS")
+  field(CALC, "(A>>10)&1")
+}
+
+# MER bit 0  — Following error
+record(calc, "$(P)$(M):MER:FERR") {
+  field(DESC, "TML MER following error")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>0)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 6  — Positive limit switch
+record(calc, "$(P)$(M):MER:LSP") {
+  field(DESC, "TML MER LSP positive limit")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>6)&1")
+}
+# MER bit 7  — Negative limit switch
+record(calc, "$(P)$(M):MER:LSN") {
+  field(DESC, "TML MER LSN negative limit")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>7)&1")
+}
+# MER bit 8  — Home switch
+record(calc, "$(P)$(M):MER:HOME") {
+  field(DESC, "TML MER home switch")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>8)&1")
+}
+# MER bit 1  — Over-current
+record(calc, "$(P)$(M):MER:OCUR") {
+  field(DESC, "TML MER over-current")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>1)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 2  — I2T fault
+record(calc, "$(P)$(M):MER:I2T") {
+  field(DESC, "TML MER I2T fault")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>2)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 3  — Over-speed
+record(calc, "$(P)$(M):MER:OVSP") {
+  field(DESC, "TML MER over-speed")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>3)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 4  — Pos overflow
+record(calc, "$(P)$(M):MER:POVF") {
+  field(DESC, "TML MER position overflow")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>4)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 5  — Over-voltage
+record(calc, "$(P)$(M):MER:OVLT") {
+  field(DESC, "TML MER over-voltage")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>5)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 9  — Under-voltage
+record(calc, "$(P)$(M):MER:UVLT") {
+  field(DESC, "TML MER under-voltage")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>9)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+# MER bit 10 — Over-temperature
+record(calc, "$(P)$(M):MER:OTMP") {
+  field(DESC, "TML MER over-temperature")
+  field(INPA, "$(P)$(M):MER CP MS")
+  field(CALC, "(A>>10)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+
+# SRL bit 11 — Home found
+record(calc, "$(P)$(M):SRL:HOME") {
+  field(DESC, "TML SRL home found")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>11)&1")
+}
+# SRL bit 13 — Positive limit (LSP)
+record(calc, "$(P)$(M):SRL:LSP") {
+  field(DESC, "TML SRL positive limit switch")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>13)&1")
+}
+# SRL bit 14 — Negative limit (LSN)
+record(calc, "$(P)$(M):SRL:LSN") {
+  field(DESC, "TML SRL negative limit switch")
+  field(INPA, "$(P)$(M):SRL CP MS")
+  field(CALC, "(A>>14)&1")
+}
+
+# MCR decode — motion mode
+record(calc, "$(P)$(M):MCR:MODE") {
+  field(DESC, "TML MCR motion mode bits")
+  field(INPA, "$(P)$(M):MCR CP MS")
+  field(CALC, "A&15")
+}
+# MCR bit 15 — axis on
+record(calc, "$(P)$(M):MCR:AXON") {
+  field(DESC, "TML MCR axis on bit")
+  field(INPA, "$(P)$(M):MCR CP MS")
+  field(CALC, "(A>>15)&1")
+}
+
 # Direction/offset/resolution forwarding to driver
 record(longout, "$(P)$(M)Direction") {
   field(DESC, "$(M) direction")

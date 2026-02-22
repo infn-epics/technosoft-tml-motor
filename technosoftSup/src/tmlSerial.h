@@ -54,8 +54,10 @@ typedef char*       LPSTR;
 /* ================================================================= */
 
 /* Channel types (same values as TML_lib) */
-#define CHANNEL_RS232   0
-#define CHANNEL_RS485   1
+#define CHANNEL_RS232    0
+#define CHANNEL_RS485    1
+#define CHANNEL_TCP      2   /* TCP/IP (XPORT, ser2net, etc.) */
+#define CHANNEL_XPORT_IP 16  /* Digi XPORT — mapped to CHANNEL_TCP internally */
 
 /* Register selection indices for readStatus() */
 #define REG_MCR  0
@@ -116,10 +118,10 @@ typedef char*       LPSTR;
 /*  (Well-documented: serial protocol reference)                     */
 /* ================================================================= */
 
-#define TML_OP_GIVE_ME_DATA_16   0xB00E  /* Request 16-bit read from drive */
-#define TML_OP_GIVE_ME_DATA_32   0xB00F  /* Request 32-bit read from drive */
-#define TML_OP_TAKE_DATA_16      0xB006  /* Response: 16-bit data from drive */
-#define TML_OP_TAKE_DATA_32      0xB004  /* Response: 32-bit data from drive */
+#define TML_OP_GIVE_ME_DATA_16   0xB004  /* Request 16-bit read from drive */
+#define TML_OP_GIVE_ME_DATA_32   0xB005  /* Request 32-bit read from drive */
+#define TML_OP_TAKE_DATA_16      0xB404  /* Response: 16-bit data from drive */
+#define TML_OP_TAKE_DATA_32      0xB405  /* Response: 32-bit data from drive */
 
 /* ================================================================= */
 /*      TML Instruction Opcodes                                      */
@@ -127,20 +129,22 @@ typedef char*       LPSTR;
 /* ================================================================= */
 
 /*
- * SET 16-bit immediate to DM address:
- *   OpCode = 0x2000 | (address & 0x0FFF)
- *   Data[0] = value
- *   1 data word
+ * Online communication protocol: Write 16-bit variable to DM address.
+ *   OpCode = 0x9004
+ *   Data[0] = DM address, Data[1] = value
+ *   2 data words
+ * (Verified from TML_lib libtmlcomm.so SendData @ 0xa47c)
  */
-#define TML_OP_SET16_BASE        0x2000
+#define TML_OP_WRITE_DATA_16     0x9004
 
 /*
- * SET 32-bit immediate to DM address:
- *   OpCode = 0x8000 | (address & 0x0FFF)
- *   Data[0] = value_low, Data[1] = value_high
- *   2 data words
+ * Online communication protocol: Write 32-bit variable to DM address.
+ *   OpCode = 0x9005
+ *   Data[0] = DM address, Data[1] = value_low, Data[2] = value_high
+ *   3 data words
+ * (Verified from TML_lib libtmlcomm.so SendData @ 0xa47c)
  */
-#define TML_OP_SET32_BASE        0x8000
+#define TML_OP_WRITE_DATA_32     0x9005
 
 /*
  * Simple control commands (no data words):
@@ -245,15 +249,19 @@ public:
     ~TmlChannel();
 
     /**
-     * Open a serial port and configure it for TML communication.
-     * @param devPath   Serial device, e.g. "/dev/ttyUSB0"
+     * Open a serial port or TCP socket for TML communication.
+     * @param devPath   Serial device "/dev/ttyUSB0" or TCP "host:port"
      * @param hostId    Host address on the bus (1-255, typically 255 for RS-232)
-     * @param baudRate  9600, 19200, 38400, 56600, or 115200
-     * @param channelType CHANNEL_RS232 or CHANNEL_RS485
+     * @param baudRate  9600..115200 (ignored for TCP)
+     * @param channelType CHANNEL_RS232, CHANNEL_RS485, or CHANNEL_TCP
+     *                    (auto-detected from devPath if RS232 and contains ':')
      * @return file descriptor (>= 0) on success, -1 on error
      */
     int open(const char *devPath, BYTE hostId, DWORD baudRate,
              BYTE channelType = CHANNEL_RS232);
+
+    /** @return true if this channel uses TCP/IP transport */
+    bool isTcp() const { return isTcp_; }
 
     /** Close the serial port. */
     void close();
@@ -332,11 +340,15 @@ public:
     /** Get the last error text */
     const char *lastError() const { return lastError_; }
 
+    /** Dump raw bytes as hex string for trace output */
+    static void hexDump(const char *tag, const uint8_t *buf, int len);
+
 private:
-    int  fd_;               /* Serial port file descriptor */
+    int  fd_;               /* Serial port / socket file descriptor */
     BYTE hostId_;           /* Host axis ID */
     BYTE activeAxisId_;     /* Currently selected drive axis ID */
-    BYTE channelType_;      /* RS-232 or RS-485 */
+    BYTE channelType_;      /* RS-232, RS-485, or TCP */
+    bool isTcp_;            /* true when using TCP socket transport */
     char lastError_[256];   /* Last error description */
     TmlVariableMap varMap_; /* Variable name → address mapping */
 
@@ -363,6 +375,12 @@ private:
 
     /* Configure termios for TML serial communication */
     bool configurePort(DWORD baudRate);
+
+    /* Open a TCP socket to host:port. Returns fd or -1. */
+    int connectTcp(const char *hostPort);
+
+    /* Detect if devPath looks like IP:port */
+    static bool looksLikeTcp(const char *devPath);
 
     /* Map baud rate integer to termios speed constant */
     static speed_t baudToSpeed(DWORD baud);

@@ -6,8 +6,7 @@
 < envPaths
 
 ## Register all support components
-cd "${TOP}"
-dbLoadDatabase "dbd/technosoft.dbd"
+dbLoadDatabase "${TOP}/dbd/technosoft.dbd"
 technosoft_registerRecordDeviceDriver pdbbase
 
 ## Load motor utility database (optional)
@@ -25,7 +24,8 @@ technosoft_registerRecordDeviceDriver pdbbase
 # < multiAxis.cmd
 
 cd "${TOP}/iocBoot/${IOC}"
-iocInit
+var drvTmlDebug 4
 
+iocInit
 ## Start motor record utility (optional)
 # motorUtilInit("TML:")

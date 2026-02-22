@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TmlLauncher.bob — Phoebus OPI launcher / summary panel for Technosoft TML IOC.
+
+  Macros:
+    P  — PV prefix  (e.g. "TML:")
+    M  — motor name (e.g. "m1") — used for the default single-axis row
+
+  Summary row per axis: position readback, done LED, fault LED,
+  TML active LED, STOP button, and buttons to open Full / Faults / Registers.
+
+  For multi-axis duplicate the row_m1 group and change M macro.
+-->
+<display version="2.0.0">
+  <name>TML Launcher — $(P)</name>
+  <macros>
+    <P>TML:</P>
+    <M>m1</M>
+  </macros>
+  <width>840</width>
+  <height>210</height>
+  <background_color>
+    <color name="Background" red="240" green="240" blue="240"/>
+  </background_color>
+
+  <!-- ===== Title Bar ===== -->
+  <widget type="rectangle" version="2.0.0">
+    <name>title_bar</name>
+    <x>0</x><y>0</y><width>840</width><height>35</height>
+    <line_color><color red="0" green="50" blue="80"/></line_color>
+    <background_color><color red="0" green="60" blue="100"/></background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>title</name>
+    <text>Technosoft TML Motor Control — $(P)</text>
+    <x>10</x>
+    <y>4</y>
+    <width>500</width>
+    <height>28</height>
+    <font><font family="Liberation Sans" style="BOLD" size="15"/></font>
+    <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+  </widget>
+
+  <!-- ===== Column Headers ===== -->
+  <widget type="label" version="2.0.0">
+    <name>hdr_axis</name>
+    <text>Axis</text>
+    <x>10</x><y>42</y><width>40</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_desc</name>
+    <text>Description</text>
+    <x>52</x><y>42</y><width>90</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_position</name>
+    <text>Position</text>
+    <x>148</x><y>42</y><width>100</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_egu</name>
+    <text>EGU</text>
+    <x>260</x><y>42</y><width>40</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_done</name>
+    <text>Done</text>
+    <x>305</x><y>42</y><width>35</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_active</name>
+    <text>Act</text>
+    <x>345</x><y>42</y><width>30</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_fault</name>
+    <text>Fault</text>
+    <x>380</x><y>42</y><width>40</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_fault_txt</name>
+    <text>Fault Text</text>
+    <x>420</x><y>42</y><width>130</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>hdr_panels</name>
+    <text>Open Panels</text>
+    <x>558</x><y>42</y><width>200</width><height>22</height>
+    <font><font family="Liberation Sans" style="BOLD" size="11"/></font>
+  </widget>
+
+  <!-- Separator line -->
+  <widget type="rectangle" version="2.0.0">
+    <name>sep1</name>
+    <x>10</x><y>64</y><width>820</width><height>2</height>
+    <line_color><color red="160" green="160" blue="160"/></line_color>
+    <background_color><color red="160" green="160" blue="160"/></background_color>
+  </widget>
+
+  <!-- ===== Axis Row: $(M) ===== -->
+  <widget type="group" version="2.0.0">
+    <name>row_m1</name>
+    <x>10</x>
+    <y>70</y>
+    <width>820</width>
+    <height>35</height>
+    <style>0</style>
+
+    <!-- Axis name -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_axis</name>
+      <text>$(M)</text>
+      <x>0</x><y>5</y><width>40</width><height>25</height>
+      <font><font family="Liberation Sans" style="BOLD" size="12"/></font>
+    </widget>
+
+    <!-- Description -->
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_desc</name>
+      <pv_name>$(P)$(M).DESC</pv_name>
+      <x>42</x><y>5</y><width>95</width><height>25</height>
+    </widget>
+
+    <!-- Position readback -->
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_rbv</name>
+      <pv_name>$(P)$(M).RBV</pv_name>
+      <x>140</x><y>5</y><width>110</width><height>25</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13"/></font>
+      <foreground_color><color red="0" green="0" blue="180"/></foreground_color>
+      <rules>
+        <rule name="moving_color" prop_id="foreground_color" out_exp="false">
+          <exp boolExp="pv0==0"><value><color red="200" green="120" blue="0"/></value></exp>
+          <pv_name>$(P)$(M).DMOV</pv_name>
+        </rule>
+      </rules>
+    </widget>
+
+    <!-- EGU -->
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_egu</name>
+      <pv_name>$(P)$(M).EGU</pv_name>
+      <x>252</x><y>5</y><width>42</width><height>25</height>
+    </widget>
+
+    <!-- Done moving LED -->
+    <widget type="led" version="2.0.0">
+      <name>led_dmov</name>
+      <pv_name>$(P)$(M).DMOV</pv_name>
+      <x>300</x><y>6</y><width>22</width><height>22</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+      <off_color><color red="200" green="200" blue="0"/></off_color>
+    </widget>
+
+    <!-- TML Active LED -->
+    <widget type="led" version="2.0.0">
+      <name>led_active</name>
+      <pv_name>$(P)$(M):ACTIVE</pv_name>
+      <x>340</x><y>6</y><width>22</width><height>22</height>
+      <on_color><color red="0" green="180" blue="255"/></on_color>
+      <off_color><color red="160" green="160" blue="160"/></off_color>
+    </widget>
+
+    <!-- Fault LED (SRH bit 15 = fault) -->
+    <widget type="led" version="2.0.0">
+      <name>led_fault</name>
+      <pv_name>$(P)$(M):SRH:FAULT</pv_name>
+      <x>385</x><y>6</y><width>22</width><height>22</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+      <off_color><color red="0" green="180" blue="0"/></off_color>
+    </widget>
+
+    <!-- Fault text -->
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_fault</name>
+      <pv_name>$(P)$(M):FAULT_TEXT</pv_name>
+      <x>412</x><y>5</y><width>136</width><height>25</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="10"/></font>
+      <foreground_color><color red="200" green="0" blue="0"/></foreground_color>
+    </widget>
+
+    <!-- Detail (Full) button -->
+    <widget type="action_button" version="3.0.0">
+      <name>btn_full</name>
+      <text>Full</text>
+      <x>550</x><y>2</y><width>55</width><height>28</height>
+      <actions>
+        <action type="open_display">
+          <file>TmlMotorFull.bob</file>
+          <target>tab</target>
+          <description>$(P)$(M) Full Panel</description>
+          <macros><P>$(P)</P><M>$(M)</M></macros>
+        </action>
+      </actions>
+    </widget>
+
+    <!-- Faults button -->
+    <widget type="action_button" version="3.0.0">
+      <name>btn_faults</name>
+      <text>Faults</text>
+      <x>610</x><y>2</y><width>58</width><height>28</height>
+      <foreground_color><color red="180" green="0" blue="0"/></foreground_color>
+      <actions>
+        <action type="open_display">
+          <file>TmlFaults.bob</file>
+          <target>tab</target>
+          <description>$(P)$(M) Fault Detail</description>
+          <macros><P>$(P)</P><M>$(M)</M></macros>
+        </action>
+      </actions>
+    </widget>
+
+    <!-- Registers button -->
+    <widget type="action_button" version="3.0.0">
+      <name>btn_regs</name>
+      <text>Regs</text>
+      <x>673</x><y>2</y><width>50</width><height>28</height>
+      <actions>
+        <action type="open_display">
+          <file>TmlRegisters.bob</file>
+          <target>tab</target>
+          <description>$(P)$(M) Raw Registers</description>
+          <macros><P>$(P)</P><M>$(M)</M></macros>
+        </action>
+      </actions>
+    </widget>
+
+    <!-- STOP button -->
+    <widget type="action_button" version="3.0.0">
+      <name>btn_stop</name>
+      <text>STOP</text>
+      <x>730</x><y>2</y><width>65</width><height>28</height>
+      <font><font family="Liberation Sans" style="BOLD" size="12"/></font>
+      <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+      <background_color><color red="220" green="30" blue="30"/></background_color>
+      <actions>
+        <action type="write_pv">
+          <pv_name>$(P)$(M).STOP</pv_name>
+          <value>1</value>
+          <description>Stop $(P)$(M)</description>
+        </action>
+      </actions>
+    </widget>
+  </widget>
+
+  <!-- ===== Bottom Bar ===== -->
+  <widget type="rectangle" version="2.0.0">
+    <name>sep2</name>
+    <x>10</x><y>115</y><width>820</width><height>1</height>
+    <line_color><color red="190" green="190" blue="190"/></line_color>
+    <background_color><color red="190" green="190" blue="190"/></background_color>
+  </widget>
+
+  <!-- IOC info -->
+  <widget type="label" version="2.0.0">
+    <name>lbl_footer</name>
+    <text>IOC: iocBoot/iocTml/singleAxis.cmd  |  st.cmd</text>
+    <x>10</x><y>125</y><width>400</width><height>20</height>
+    <font><font family="Liberation Sans" style="ITALIC" size="10"/></font>
+    <foreground_color><color red="120" green="120" blue="120"/></foreground_color>
+  </widget>
+
+  <!-- STOP ALL -->
+  <widget type="action_button" version="3.0.0">
+    <name>btn_stop_all</name>
+    <text>STOP ALL</text>
+    <x>560</x><y>120</y><width>120</width><height>32</height>
+    <font><font family="Liberation Sans" style="BOLD" size="13"/></font>
+    <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+    <background_color><color red="180" green="0" blue="0"/></background_color>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).STOP</pv_name>
+        <value>1</value>
+        <description>Stop All Motors</description>
+      </action>
+    </actions>
+  </widget>
+
+  <!-- Launch IOC -->
+  <widget type="action_button" version="3.0.0">
+    <name>btn_launch_ioc</name>
+    <text>Launch IOC</text>
+    <x>700</x><y>120</y><width>120</width><height>32</height>
+    <tooltip>Execute the IOC startup script via procServ or shell</tooltip>
+    <actions>
+      <action type="execute">
+        <command>bash -c "cd $(TOP)/iocBoot/iocTml &amp;&amp; ../../bin/linux-x86_64/tml ./st.cmd" &amp;</command>
+        <description>Launch IOC st.cmd</description>
+      </action>
+    </actions>
+  </widget>
+
+  <!-- Simple Motor OPI -->
+  <widget type="action_button" version="3.0.0">
+    <name>btn_motor_std</name>
+    <text>Std Motor OPI</text>
+    <x>420</x><y>120</y><width>120</width><height>32</height>
+    <actions>
+      <action type="open_display">
+        <file>motor/motorx_all.bob</file>
+        <target>tab</target>
+        <description>Standard motor OPI</description>
+        <macros><P>$(P)</P><M>$(M)</M></macros>
+      </action>
+    </actions>
+  </widget>
+
+</display>

@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TmlFaults.bob — Detailed TML fault/status bit display
+  Macros: P (PV prefix), M (motor name)
+-->
+<display version="2.0.0">
+  <name>TML Faults - $(P)$(M)</name>
+  <macros>
+    <P>$(P)</P>
+    <M>$(M)</M>
+  </macros>
+  <width>600</width>
+  <height>780</height>
+  <background_color>
+    <color red="240" green="240" blue="240"/>
+  </background_color>
+
+  <!-- Title -->
+  <widget type="rectangle" version="2.0.0">
+    <name>title_bar</name>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>45</height>
+    <line_color><color red="140" green="0" blue="0"/></line_color>
+    <background_color><color red="180" green="0" blue="0"/></background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>title</name>
+    <text>TML Fault Detail — $(P)$(M)</text>
+    <x>10</x>
+    <y>5</y>
+    <width>450</width>
+    <height>35</height>
+    <font><font family="Liberation Sans" style="BOLD" size="16.0"/></font>
+    <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+  </widget>
+
+  <!-- Fault text banner -->
+  <widget type="label" version="2.0.0">
+    <name>lbl_ftxt</name>
+    <text>Fault Summary:</text>
+    <x>10</x>
+    <y>52</y>
+    <width>120</width>
+    <height>25</height>
+    <font><font family="Liberation Sans" style="BOLD" size="12.0"/></font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>txt_ftxt</name>
+    <pv_name>$(P)$(M):FAULT</pv_name>
+    <x>135</x>
+    <y>52</y>
+    <width>455</width>
+    <height>25</height>
+    <font><font family="Liberation Mono" style="BOLD" size="13.0"/></font>
+    <foreground_color><color red="255" green="0" blue="0"/></foreground_color>
+  </widget>
+
+  <!-- Reset Fault button -->
+  <widget type="action_button" version="3.0.0">
+    <name>btn_rstfault</name>
+    <actions>
+      <action type="write_pv">
+        <description>Reset Faults</description>
+        <pv_name>$(P)$(M):CMD:RSTFAULT</pv_name>
+        <value>1</value>
+      </action>
+    </actions>
+    <text>Reset Faults</text>
+    <x>460</x>
+    <y>82</y>
+    <width>130</width>
+    <height>30</height>
+    <font><font family="Liberation Sans" style="BOLD" size="12.0"/></font>
+    <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+    <background_color><color red="200" green="100" blue="0"/></background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+
+  <!-- ==================== SRH — Status Register High ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_srh</name>
+    <x>10</x>
+    <y>120</y>
+    <width>580</width>
+    <height>200</height>
+    <style>1</style>
+    <foreground_color><color red="100" green="0" blue="0"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_srh_title</name>
+      <text>Status Register High (SRH) — 0x</text>
+      <x>5</x>
+      <y>0</y>
+      <width>260</width>
+      <height>22</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srh</name>
+      <pv_name>$(P)$(M):SRH</pv_name>
+      <x>270</x>
+      <y>0</y>
+      <width>80</width>
+      <height>22</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <!-- Bit 0: Following error -->
+    <widget type="led" version="2.0.0">
+      <name>led_s0</name>
+      <pv_name>$(P)$(M):SRH:FERR</pv_name>
+      <x>5</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls0</name>
+      <text>Bit 0: Following / Position Error</text>
+      <x>28</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 1: Over-speed -->
+    <widget type="led" version="2.0.0">
+      <name>led_s1</name>
+      <pv_name>$(P)$(M):SRH:OVSP</pv_name>
+      <x>5</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls1</name>
+      <text>Bit 1: Over-speed</text>
+      <x>28</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 2: Over-current -->
+    <widget type="led" version="2.0.0">
+      <name>led_s2</name>
+      <pv_name>$(P)$(M):SRH:OCUR</pv_name>
+      <x>5</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls2</name>
+      <text>Bit 2: Over-current</text>
+      <x>28</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 3: I2T -->
+    <widget type="led" version="2.0.0">
+      <name>led_s3</name>
+      <pv_name>$(P)$(M):SRH:I2T</pv_name>
+      <x>5</x><y>96</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls3</name>
+      <text>Bit 3: I2T Protection Limit</text>
+      <x>28</x><y>96</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 4: Over-temperature -->
+    <widget type="led" version="2.0.0">
+      <name>led_s4</name>
+      <pv_name>$(P)$(M):SRH:OTMP</pv_name>
+      <x>5</x><y>118</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls4</name>
+      <text>Bit 4: Over-temperature</text>
+      <x>28</x><y>118</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 5: Under-voltage -->
+    <widget type="led" version="2.0.0">
+      <name>led_s5</name>
+      <pv_name>$(P)$(M):SRH:UVLT</pv_name>
+      <x>5</x><y>140</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls5</name>
+      <text>Bit 5: Under-voltage</text>
+      <x>28</x><y>140</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 6: Over-voltage -->
+    <widget type="led" version="2.0.0">
+      <name>led_s6</name>
+      <pv_name>$(P)$(M):SRH:OVLT</pv_name>
+      <x>5</x><y>162</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls6</name>
+      <text>Bit 6: Over-voltage</text>
+      <x>28</x><y>162</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 15: General fault (OR) -->
+    <widget type="led" version="2.0.0">
+      <name>led_s15</name>
+      <pv_name>$(P)$(M):SRH:FLT</pv_name>
+      <x>300</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls15</name>
+      <text>Bit 15: General Fault (OR)</text>
+      <x>323</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 9: In-position -->
+    <widget type="led" version="2.0.0">
+      <name>led_s9</name>
+      <pv_name>$(P)$(M):SRH:INPOS</pv_name>
+      <x>300</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls9</name>
+      <text>Bit 9: In-Position (Ref reached)</text>
+      <x>323</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 10: Motion complete -->
+    <widget type="led" version="2.0.0">
+      <name>led_s10</name>
+      <pv_name>$(P)$(M):SRH:MCOMPLETE</pv_name>
+      <x>300</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ls10</name>
+      <text>Bit 10: Motion Complete</text>
+      <x>323</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+  </widget>
+
+  <!-- ==================== SRL — Status Register Low ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_srl</name>
+    <x>10</x>
+    <y>330</y>
+    <width>580</width>
+    <height>155</height>
+    <style>1</style>
+    <foreground_color><color red="100" green="0" blue="0"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_srl_title</name>
+      <text>Status Register Low (SRL) — 0x</text>
+      <x>5</x>
+      <y>0</y>
+      <width>260</width>
+      <height>22</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srl</name>
+      <pv_name>$(P)$(M):SRL</pv_name>
+      <x>270</x>
+      <y>0</y>
+      <width>80</width>
+      <height>22</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <!-- Bit 8: Global fault -->
+    <widget type="led" version="2.0.0">
+      <name>led_l8</name>
+      <pv_name>$(P)$(M):SRL:GFLT</pv_name>
+      <x>5</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll8</name>
+      <text>Bit 8: Global Fault</text>
+      <x>28</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 9: Axis fault -->
+    <widget type="led" version="2.0.0">
+      <name>led_l9</name>
+      <pv_name>$(P)$(M):SRL:AFLT</pv_name>
+      <x>5</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll9</name>
+      <text>Bit 9: Axis Fault</text>
+      <x>28</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 10: Motion complete -->
+    <widget type="led" version="2.0.0">
+      <name>led_l10</name>
+      <pv_name>$(P)$(M):SRL:MC</pv_name>
+      <x>5</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll10</name>
+      <text>Bit 10: Motion Complete</text>
+      <x>28</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 11: Home found -->
+    <widget type="led" version="2.0.0">
+      <name>led_l11</name>
+      <pv_name>$(P)$(M):SRL:HOME</pv_name>
+      <x>300</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll11</name>
+      <text>Bit 11: Home Found</text>
+      <x>323</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 13: LSP -->
+    <widget type="led" version="2.0.0">
+      <name>led_l13</name>
+      <pv_name>$(P)$(M):SRL:LSP</pv_name>
+      <x>300</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="100" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll13</name>
+      <text>Bit 13: Positive Limit (LSP)</text>
+      <x>323</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 14: LSN -->
+    <widget type="led" version="2.0.0">
+      <name>led_l14</name>
+      <pv_name>$(P)$(M):SRL:LSN</pv_name>
+      <x>300</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="100" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll14</name>
+      <text>Bit 14: Negative Limit (LSN)</text>
+      <x>323</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 15: Axis ON -->
+    <widget type="led" version="2.0.0">
+      <name>led_l15</name>
+      <pv_name>$(P)$(M):SRL:AXON</pv_name>
+      <x>300</x><y>96</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="255" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>ll15</name>
+      <text>Bit 15: Axis ON (Power Stage)</text>
+      <x>323</x><y>96</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+    </widget>
+  </widget>
+
+  <!-- ==================== MER — Motion Error Register ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_mer</name>
+    <x>10</x>
+    <y>495</y>
+    <width>580</width>
+    <height>270</height>
+    <style>1</style>
+    <foreground_color><color red="100" green="0" blue="0"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_mer_title</name>
+      <text>Motion Error Register (MER) — 0x</text>
+      <x>5</x>
+      <y>0</y>
+      <width>280</width>
+      <height>22</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mer</name>
+      <pv_name>$(P)$(M):MER</pv_name>
+      <x>290</x>
+      <y>0</y>
+      <width>80</width>
+      <height>22</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <!-- Bit 0: Following error -->
+    <widget type="led" version="2.0.0">
+      <name>led_m0</name>
+      <pv_name>$(P)$(M):MER:FERR</pv_name>
+      <x>5</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm0</name>
+      <text>Bit 0: Following Error</text>
+      <x>28</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 1: Over-current -->
+    <widget type="led" version="2.0.0">
+      <name>led_m1</name>
+      <pv_name>$(P)$(M):MER:OCUR</pv_name>
+      <x>5</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm1</name>
+      <text>Bit 1: Over-current</text>
+      <x>28</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 2: I2T -->
+    <widget type="led" version="2.0.0">
+      <name>led_m2</name>
+      <pv_name>$(P)$(M):MER:I2T</pv_name>
+      <x>5</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm2</name>
+      <text>Bit 2: I2T Fault</text>
+      <x>28</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 3: Over-speed -->
+    <widget type="led" version="2.0.0">
+      <name>led_m3</name>
+      <pv_name>$(P)$(M):MER:OVSP</pv_name>
+      <x>5</x><y>96</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm3</name>
+      <text>Bit 3: Over-speed</text>
+      <x>28</x><y>96</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 4: Position overflow -->
+    <widget type="led" version="2.0.0">
+      <name>led_m4</name>
+      <pv_name>$(P)$(M):MER:POVF</pv_name>
+      <x>5</x><y>118</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="100" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm4</name>
+      <text>Bit 4: Position Overflow</text>
+      <x>28</x><y>118</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 5: Over-voltage -->
+    <widget type="led" version="2.0.0">
+      <name>led_m5</name>
+      <pv_name>$(P)$(M):MER:OVLT</pv_name>
+      <x>5</x><y>140</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm5</name>
+      <text>Bit 5: Over-voltage</text>
+      <x>28</x><y>140</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 6: LSP -->
+    <widget type="led" version="2.0.0">
+      <name>led_m6</name>
+      <pv_name>$(P)$(M):MER:LSP</pv_name>
+      <x>300</x><y>30</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="100" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm6</name>
+      <text>Bit 6: Positive Limit (LSP)</text>
+      <x>323</x><y>30</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 7: LSN -->
+    <widget type="led" version="2.0.0">
+      <name>led_m7</name>
+      <pv_name>$(P)$(M):MER:LSN</pv_name>
+      <x>300</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="100" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm7</name>
+      <text>Bit 7: Negative Limit (LSN)</text>
+      <x>323</x><y>52</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 8: Home -->
+    <widget type="led" version="2.0.0">
+      <name>led_m8</name>
+      <pv_name>$(P)$(M):MER:HOME</pv_name>
+      <x>300</x><y>74</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm8</name>
+      <text>Bit 8: Home Switch Active</text>
+      <x>323</x><y>74</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 9: Under-voltage -->
+    <widget type="led" version="2.0.0">
+      <name>led_m9</name>
+      <pv_name>$(P)$(M):MER:UVLT</pv_name>
+      <x>300</x><y>96</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm9</name>
+      <text>Bit 9: Under-voltage</text>
+      <x>323</x><y>96</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- Bit 10: Over-temperature -->
+    <widget type="led" version="2.0.0">
+      <name>led_m10</name>
+      <pv_name>$(P)$(M):MER:OTMP</pv_name>
+      <x>300</x><y>118</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="0" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lm10</name>
+      <text>Bit 10: Over-temperature</text>
+      <x>323</x><y>118</y><width>250</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+  </widget>
+
+</display>

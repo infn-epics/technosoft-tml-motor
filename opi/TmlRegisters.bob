@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TmlRegisters.bob — Raw TML register display with hex values
+  Macros: P (PV prefix), M (motor name)
+-->
+<display version="2.0.0">
+  <name>TML Registers - $(P)$(M)</name>
+  <macros>
+    <P>$(P)</P>
+    <M>$(M)</M>
+  </macros>
+  <width>520</width>
+  <height>520</height>
+  <background_color>
+    <color red="240" green="240" blue="240"/>
+  </background_color>
+
+  <!-- Title -->
+  <widget type="rectangle" version="2.0.0">
+    <name>title_bar</name>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>45</height>
+    <line_color><color red="0" green="50" blue="80"/></line_color>
+    <background_color><color red="0" green="60" blue="100"/></background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>title</name>
+    <text>TML Registers — $(P)$(M)</text>
+    <x>10</x>
+    <y>5</y>
+    <width>400</width>
+    <height>35</height>
+    <font><font family="Liberation Sans" style="BOLD" size="16.0"/></font>
+    <foreground_color><color red="255" green="255" blue="255"/></foreground_color>
+  </widget>
+
+  <!-- ==================== Status Registers ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_status_regs</name>
+    <x>10</x>
+    <y>55</y>
+    <width>500</width>
+    <height>185</height>
+    <style>1</style>
+    <foreground_color><color red="0" green="50" blue="100"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_title1</name>
+      <text>Status Registers (16-bit, hex)</text>
+      <x>5</x>
+      <y>0</y>
+      <width>280</width>
+      <height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <!-- Column headers -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_h_reg</name>
+      <text>Register</text>
+      <x>5</x><y>25</y><width>120</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h_addr</name>
+      <text>DM Address</text>
+      <x>130</x><y>25</y><width>90</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h_val</name>
+      <text>Value (hex)</text>
+      <x>230</x><y>25</y><width>100</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h_dec</name>
+      <text>Value (dec)</text>
+      <x>350</x><y>25</y><width>100</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+
+    <!-- SRH -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_srh</name>
+      <text>SRH (Status High)</text>
+      <x>5</x><y>48</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_srh_addr</name>
+      <text>0x090F</text>
+      <x>130</x><y>48</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srh_hex</name>
+      <pv_name>$(P)$(M):SRH</pv_name>
+      <x>230</x><y>48</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srh_dec</name>
+      <pv_name>$(P)$(M):SRH</pv_name>
+      <x>350</x><y>48</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- SRL -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_srl</name>
+      <text>SRL (Status Low)</text>
+      <x>5</x><y>72</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_srl_addr</name>
+      <text>0x090E</text>
+      <x>130</x><y>72</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srl_hex</name>
+      <pv_name>$(P)$(M):SRL</pv_name>
+      <x>230</x><y>72</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_srl_dec</name>
+      <pv_name>$(P)$(M):SRL</pv_name>
+      <x>350</x><y>72</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- MER -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_mer</name>
+      <text>MER (Motion Error)</text>
+      <x>5</x><y>96</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mer_addr</name>
+      <text>0x0910</text>
+      <x>130</x><y>96</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mer_hex</name>
+      <pv_name>$(P)$(M):MER</pv_name>
+      <x>230</x><y>96</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mer_dec</name>
+      <pv_name>$(P)$(M):MER</pv_name>
+      <x>350</x><y>96</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- MCR -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr</name>
+      <text>MCR (Motion Ctrl)</text>
+      <x>5</x><y>120</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_addr</name>
+      <text>0x0908</text>
+      <x>130</x><y>120</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mcr_hex</name>
+      <pv_name>$(P)$(M):MCR</pv_name>
+      <x>230</x><y>120</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mcr_dec</name>
+      <pv_name>$(P)$(M):MCR</pv_name>
+      <x>350</x><y>120</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- MSR -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_msr</name>
+      <text>MSR (Motion Stat)</text>
+      <x>5</x><y>144</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_msr_addr</name>
+      <text>0x0909</text>
+      <x>130</x><y>144</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_msr_hex</name>
+      <pv_name>$(P)$(M):MSR</pv_name>
+      <x>230</x><y>144</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_msr_dec</name>
+      <pv_name>$(P)$(M):MSR</pv_name>
+      <x>350</x><y>144</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <!-- ISR -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_isr</name>
+      <text>ISR (Interrupt)</text>
+      <x>5</x><y>164</y><width>120</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_isr_addr</name>
+      <text>0x090A</text>
+      <x>130</x><y>164</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_isr_hex</name>
+      <pv_name>$(P)$(M):ISR</pv_name>
+      <x>230</x><y>164</y><width>100</width><height>20</height>
+      <format>6</format>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_isr_dec</name>
+      <pv_name>$(P)$(M):ISR</pv_name>
+      <x>350</x><y>164</y><width>100</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+  </widget>
+
+  <!-- ==================== Position / Speed Registers ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_pos_regs</name>
+    <x>10</x>
+    <y>250</y>
+    <width>500</width>
+    <height>120</height>
+    <style>1</style>
+    <foreground_color><color red="0" green="50" blue="100"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_title2</name>
+      <text>Position / Speed (32-bit)</text>
+      <x>5</x>
+      <y>0</y>
+      <width>280</width>
+      <height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <!-- Column headers -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_h2_reg</name>
+      <text>Register</text>
+      <x>5</x><y>25</y><width>130</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h2_addr</name>
+      <text>DM Address</text>
+      <x>140</x><y>25</y><width>90</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h2_val</name>
+      <text>Value</text>
+      <x>240</x><y>25</y><width>100</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_h2_unit</name>
+      <text>Unit</text>
+      <x>380</x><y>25</y><width>80</width><height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="11.0"/></font>
+      <foreground_color><color red="80" green="80" blue="80"/></foreground_color>
+    </widget>
+
+    <!-- TPOS (motor position) -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_tpos</name>
+      <text>TPOS (Target Pos)</text>
+      <x>5</x><y>48</y><width>130</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_tpos_addr</name>
+      <text>0x022A</text>
+      <x>140</x><y>48</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_tpos</name>
+      <pv_name>$(P)$(M).DRBV</pv_name>
+      <x>240</x><y>48</y><width>130</width><height>20</height>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_tpos_u</name>
+      <text>IU (steps)</text>
+      <x>380</x><y>48</y><width>80</width><height>20</height>
+      <font><font family="Liberation Sans" style="ITALIC" size="10.0"/></font>
+      <foreground_color><color red="100" green="100" blue="100"/></foreground_color>
+    </widget>
+
+    <!-- APOS (encoder) -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_apos</name>
+      <text>APOS (Encoder Pos)</text>
+      <x>5</x><y>72</y><width>130</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_apos_addr</name>
+      <text>0x0228</text>
+      <x>140</x><y>72</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_apos</name>
+      <pv_name>$(P)$(M):APOS</pv_name>
+      <x>240</x><y>72</y><width>130</width><height>20</height>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_apos_u</name>
+      <text>IU (steps)</text>
+      <x>380</x><y>72</y><width>80</width><height>20</height>
+      <font><font family="Liberation Sans" style="ITALIC" size="10.0"/></font>
+      <foreground_color><color red="100" green="100" blue="100"/></foreground_color>
+    </widget>
+
+    <!-- CSPD -->
+    <widget type="label" version="2.0.0">
+      <name>lbl_cspd</name>
+      <text>CSPD (Cmd Speed)</text>
+      <x>5</x><y>96</y><width>130</width><height>20</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_cspd_addr</name>
+      <text>0x0230</text>
+      <x>140</x><y>96</y><width>90</width><height>20</height>
+      <font><font family="Liberation Mono" style="REGULAR" size="11.0"/></font>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_cspd</name>
+      <pv_name>$(P)$(M):CSPD</pv_name>
+      <x>240</x><y>96</y><width>130</width><height>20</height>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_cspd_u</name>
+      <text>IU/s (16.16)</text>
+      <x>380</x><y>96</y><width>80</width><height>20</height>
+      <font><font family="Liberation Sans" style="ITALIC" size="10.0"/></font>
+      <foreground_color><color red="100" green="100" blue="100"/></foreground_color>
+    </widget>
+  </widget>
+
+  <!-- ==================== MCR Bit Decode ==================== -->
+  <widget type="group" version="3.0.0">
+    <name>grp_mcr</name>
+    <x>10</x>
+    <y>380</y>
+    <width>500</width>
+    <height>125</height>
+    <style>1</style>
+    <foreground_color><color red="0" green="50" blue="100"/></foreground_color>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_title</name>
+      <text>MCR Bit Decode (Motion Control Register)</text>
+      <x>5</x>
+      <y>0</y>
+      <width>380</width>
+      <height>20</height>
+      <font><font family="Liberation Sans" style="BOLD" size="13.0"/></font>
+    </widget>
+
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_mode</name>
+      <text>Mode [3:0]:</text>
+      <x>5</x><y>28</y><width>80</width><height>20</height>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>txt_mcr_mode</name>
+      <pv_name>$(P)$(M):MCR:MODE</pv_name>
+      <x>90</x><y>28</y><width>40</width><height>20</height>
+      <font><font family="Liberation Mono" style="BOLD" size="12.0"/></font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_mode_info</name>
+      <text>(1=PP, 2=SP, 3=PSC)</text>
+      <x>140</x><y>28</y><width>200</width><height>20</height>
+      <font><font family="Liberation Sans" style="ITALIC" size="10.0"/></font>
+      <foreground_color><color red="100" green="100" blue="100"/></foreground_color>
+    </widget>
+
+    <widget type="led" version="2.0.0">
+      <name>led_mcr_axon</name>
+      <pv_name>$(P)$(M):MCR:AXON</pv_name>
+      <x>5</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_axon</name>
+      <text>Bit 15: AXIS ON (power stage enable)</text>
+      <x>28</x><y>52</y><width>280</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <widget type="led" version="2.0.0">
+      <name>led_mcr_upd</name>
+      <pv_name>=$(P)$(M):MCR</pv_name>
+      <bit>8</bit>
+      <x>5</x><y>75</y><width>18</width><height>18</height>
+      <on_color><color red="255" green="200" blue="0"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_upd</name>
+      <text>Bit 8: UPDATE (motion params update)</text>
+      <x>28</x><y>75</y><width>280</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <widget type="led" version="2.0.0">
+      <name>led_mcr_rel</name>
+      <pv_name>=$(P)$(M):MCR</pv_name>
+      <bit>7</bit>
+      <x>5</x><y>98</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="180" blue="255"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_rel</name>
+      <text>Bit 7: RELATIVE (0=abs, 1=rel)</text>
+      <x>28</x><y>98</y><width>280</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+
+    <widget type="led" version="2.0.0">
+      <name>led_mcr_ref</name>
+      <pv_name>=$(P)$(M):MCR</pv_name>
+      <bit>5</bit>
+      <x>310</x><y>52</y><width>18</width><height>18</height>
+      <on_color><color red="0" green="180" blue="255"/></on_color>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>lbl_mcr_ref</name>
+      <text>Bit 5: REF BASE (0=measure, 1=ref)</text>
+      <x>333</x><y>52</y><width>160</width><height>18</height>
+      <font><font family="Liberation Sans" style="REGULAR" size="11.0"/></font>
+    </widget>
+  </widget>
+
+</display>

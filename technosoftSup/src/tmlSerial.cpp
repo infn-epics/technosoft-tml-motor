@@ -32,6 +32,11 @@
 #include <termios.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #include "tmlSerial.h"
 
@@ -138,6 +143,7 @@ TmlChannel::TmlChannel()
     , hostId_(1)
     , activeAxisId_(255)
     , channelType_(CHANNEL_RS232)
+    , isTcp_(false)
 {
     memset(lastError_, 0, sizeof(lastError_));
 }
@@ -222,10 +228,36 @@ int TmlChannel::open(const char *devPath, BYTE hostId, DWORD baudRate,
     hostId_      = hostId;
     channelType_ = channelType;
     activeAxisId_ = hostId;  /* default: direct-connected axis */
+    isTcp_       = false;
+
+    /* ---- Detect TCP/IP mode ---- */
+    if (channelType == CHANNEL_TCP || channelType == CHANNEL_XPORT_IP
+        || looksLikeTcp(devPath)) {
+        printf("tmlSerial: connecting TCP to '%s' (hostId=%d)\n",
+               devPath, hostId_);
+        fd_ = connectTcp(devPath);
+        if (fd_ < 0) {
+            printf("tmlSerial: TCP connection FAILED — %s\n", lastError_);
+            return -1;
+        }
+        isTcp_ = true;
+        channelType_ = CHANNEL_TCP;
+        printf("tmlSerial: TCP connected '%s' fd=%d\n", devPath, fd_);
+        DBG_SER(1, "Opened TCP '%s' fd=%d hostId=%d",
+                devPath, fd_, hostId_);
+        return fd_;
+    }
+
+    /* ---- Serial port mode ---- */
+    printf("tmlSerial: opening serial '%s' (baud=%u, 8N2, %s, hostId=%d)\n",
+           devPath, (unsigned)baudRate,
+           channelType == CHANNEL_RS485 ? "RS-485" : "RS-232",
+           hostId_);
 
     fd_ = ::open(devPath, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd_ < 0) {
         setError("Cannot open '%s': %s", devPath, strerror(errno));
+        printf("tmlSerial: serial open FAILED — %s\n", lastError_);
         return -1;
     }
 
@@ -235,23 +267,123 @@ int TmlChannel::open(const char *devPath, BYTE hostId, DWORD baudRate,
         fcntl(fd_, F_SETFL, flags & ~O_NONBLOCK);
 
     if (!configurePort(baudRate)) {
+        printf("tmlSerial: serial configure FAILED — %s\n", lastError_);
         ::close(fd_);
         fd_ = -1;
         return -1;
     }
 
-    DBG_SER(1, "Opened '%s' fd=%d hostId=%d baud=%u type=%d",
+    printf("tmlSerial: serial opened '%s' fd=%d\n", devPath, fd_);
+    DBG_SER(1, "Opened serial '%s' fd=%d hostId=%d baud=%u type=%d",
             devPath, fd_, hostId_, (unsigned)baudRate, channelType_);
 
     return fd_;
 }
 
+/* ================================================================= */
+/*               TCP/IP support (XPORT, ser2net, etc.)               */
+/* ================================================================= */
+
+bool TmlChannel::looksLikeTcp(const char *devPath)
+{
+    /* Heuristic: contains ':' and does NOT start with '/' (device path) */
+    if (!devPath || devPath[0] == '/' || devPath[0] == '.')
+        return false;
+    return (strchr(devPath, ':') != nullptr);
+}
+
+int TmlChannel::connectTcp(const char *hostPort)
+{
+    /* Parse "host:port" */
+    char hostBuf[256];
+    strncpy(hostBuf, hostPort, sizeof(hostBuf) - 1);
+    hostBuf[sizeof(hostBuf) - 1] = '\0';
+
+    char *colon = strrchr(hostBuf, ':');
+    if (!colon) {
+        setError("TCP address must be 'host:port', got '%s'", hostPort);
+        return -1;
+    }
+    *colon = '\0';
+    const char *host = hostBuf;
+    int port = atoi(colon + 1);
+    if (port <= 0 || port > 65535) {
+        setError("Invalid TCP port in '%s'", hostPort);
+        return -1;
+    }
+
+    DBG_SER(1, "TCP connecting to %s:%d", host, port);
+
+    /* Resolve hostname */
+    struct addrinfo hints, *res = nullptr;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    char portStr[8];
+    snprintf(portStr, sizeof(portStr), "%d", port);
+
+    int gai = getaddrinfo(host, portStr, &hints, &res);
+    if (gai != 0) {
+        setError("getaddrinfo('%s'): %s", host, gai_strerror(gai));
+        return -1;
+    }
+
+    /* Try each resolved address */
+    int sock = -1;
+    for (struct addrinfo *rp = res; rp; rp = rp->ai_next) {
+        sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sock < 0) continue;
+
+        /* Set a 5-second connect timeout via non-blocking + select */
+        int flags = fcntl(sock, F_GETFL, 0);
+        fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+        int cret = ::connect(sock, rp->ai_addr, rp->ai_addrlen);
+        if (cret < 0 && errno == EINPROGRESS) {
+            fd_set wfds;
+            FD_ZERO(&wfds);
+            FD_SET(sock, &wfds);
+            struct timeval tv = {5, 0};
+            if (select(sock + 1, nullptr, &wfds, nullptr, &tv) > 0) {
+                int err = 0;
+                socklen_t len = sizeof(err);
+                getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &len);
+                if (err == 0) cret = 0;
+            }
+        }
+
+        if (cret == 0) {
+            /* Connected! Restore blocking mode */
+            fcntl(sock, F_SETFL, flags & ~O_NONBLOCK);
+
+            /* Disable Nagle for low-latency frame exchange */
+            int one = 1;
+            setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+
+            DBG_SER(1, "TCP connected to %s:%d fd=%d", host, port, sock);
+            break;
+        }
+
+        ::close(sock);
+        sock = -1;
+    }
+
+    freeaddrinfo(res);
+
+    if (sock < 0) {
+        setError("TCP connect to '%s' failed: %s", hostPort, strerror(errno));
+    }
+    return sock;
+}
+
 void TmlChannel::close()
 {
     if (fd_ >= 0) {
-        DBG_SER(1, "Closing fd=%d", fd_);
+        DBG_SER(1, "Closing fd=%d%s", fd_, isTcp_ ? " (TCP)" : "");
         ::close(fd_);
         fd_ = -1;
+        isTcp_ = false;
     }
 }
 
@@ -333,9 +465,48 @@ bool TmlChannel::writeBytes(const uint8_t *buf, int count)
         written += n;
     }
 
-    /* Ensure bytes are drained to the hardware */
-    tcdrain(fd_);
+    /* Ensure bytes are drained to the hardware (serial only) */
+    if (!isTcp_)
+        tcdrain(fd_);
     return true;
+}
+
+/* ================================================================= */
+/*               Hex-dump trace helper                               */
+/* ================================================================= */
+
+void TmlChannel::hexDump(const char *tag, const uint8_t *buf, int len)
+{
+    if (drvTmlDebug < 4 || len <= 0) return;
+
+    /* Format: "TX 08 00F0 B004 0FF1 0228  [ck=xx]" */
+    char line[256];
+    int pos = snprintf(line, sizeof(line), "%-3s", tag);
+
+    for (int i = 0; i < len && pos < (int)sizeof(line) - 4; i++) {
+        pos += snprintf(line + pos, sizeof(line) - pos, " %02X", buf[i]);
+    }
+
+    /* Also decode structure if it's a valid frame */
+    if (len >= 6) {
+        int payloadLen = buf[0];
+        if (payloadLen >= 4 && 1 + payloadLen + 1 <= len) {
+            WORD addr   = ((WORD)buf[1] << 8) | buf[2];
+            WORD opCode = ((WORD)buf[3] << 8) | buf[4];
+            int nData   = (payloadLen - 4) / 2;
+            pos += snprintf(line + pos, sizeof(line) - pos,
+                            "  | addr=0x%04X op=0x%04X nData=%d",
+                            addr, opCode, nData);
+            for (int i = 0; i < nData && i < 4; i++) {
+                int off = 5 + 2 * i;
+                WORD w = ((WORD)buf[off] << 8) | buf[off + 1];
+                pos += snprintf(line + pos, sizeof(line) - pos,
+                                " d[%d]=0x%04X", i, w);
+            }
+        }
+    }
+
+    printf("tmlSerial TRACE %s\n", line);
 }
 
 /* ================================================================= */
@@ -482,6 +653,7 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
 
     DBG_SER(3, "TX [%d bytes] addr=0x%04X op=0x%04X nData=%d",
             len, msg.addr, msg.opCode, msg.nData);
+    hexDump("TX", buf, len);
 
     if (!writeBytes(buf, len))
         return false;
@@ -537,6 +709,7 @@ bool TmlChannel::receiveMessage(TmlMsg &msg, int timeoutMs)
     DBG_SER(3, "RX [%d bytes] raw: %02X %02X %02X %02X %02X ...",
             totalLen, buf[0], buf[1], buf[2],
             totalLen > 3 ? buf[3] : 0, totalLen > 4 ? buf[4] : 0);
+    hexDump("RX", buf, totalLen);
 
     return deserialiseMessage(buf, totalLen, msg);
 }
@@ -556,42 +729,51 @@ bool TmlChannel::sendCommand(WORD opCode)
 
 bool TmlChannel::writeData16(WORD address, WORD value)
 {
+    /* Online communication protocol: WriteData16 (opcode 0x9004)
+     * Data[0] = DM address, Data[1] = value.
+     * Verified from TML_lib libtmlcomm.so SendData @ 0xa47c-0xa49e */
     TmlMsg msg;
     msg.addr   = (WORD)activeAxisId_ << 4;
-    msg.opCode = TML_OP_SET16_BASE | (address & 0x0FFF);
-    msg.nData  = 1;
-    msg.data[0] = value;
+    msg.opCode = TML_OP_WRITE_DATA_16;
+    msg.nData  = 2;
+    msg.data[0] = address;
+    msg.data[1] = value;
 
-    DBG_SER(2, "Write16 addr=0x%04X val=0x%04X → opcode=0x%04X",
-            address, value, msg.opCode);
+    DBG_SER(2, "WriteData16 addr=0x%04X val=0x%04X", address, value);
 
     return sendMessage(msg);
 }
 
 bool TmlChannel::writeData32(WORD address, uint32_t value)
 {
+    /* Online communication protocol: WriteData32 (opcode 0x9005)
+     * Data[0] = DM address, Data[1] = low word, Data[2] = high word.
+     * Verified from TML_lib libtmlcomm.so SendData @ 0xa47c-0xa49e */
     TmlMsg msg;
     msg.addr   = (WORD)activeAxisId_ << 4;
-    msg.opCode = TML_OP_SET32_BASE | (address & 0x0FFF);
-    msg.nData  = 2;
-    msg.data[0] = (WORD)(value & 0xFFFF);         /* Low word */
-    msg.data[1] = (WORD)((value >> 16) & 0xFFFF); /* High word */
+    msg.opCode = TML_OP_WRITE_DATA_32;
+    msg.nData  = 3;
+    msg.data[0] = address;
+    msg.data[1] = (WORD)(value & 0xFFFF);         /* Low word */
+    msg.data[2] = (WORD)((value >> 16) & 0xFFFF); /* High word */
 
-    DBG_SER(2, "Write32 addr=0x%04X val=0x%08X → opcode=0x%04X",
-            address, (unsigned)value, msg.opCode);
+    DBG_SER(2, "WriteData32 addr=0x%04X val=0x%08X",
+            address, (unsigned)value);
 
     return sendMessage(msg);
 }
 
 bool TmlChannel::readData16(WORD address, WORD &value)
 {
-    /* Build GiveMeData16 request */
+    /* Build GiveMeData16 request.
+     * Wire data layout: data[0] = sender axis ID, data[1] = DM address.
+     * (Verified against TML_lib ReceiveData @ libtmlcomm.so:0x9d2d) */
     TmlMsg req;
     req.addr    = (WORD)activeAxisId_ << 4;
     req.opCode  = TML_OP_GIVE_ME_DATA_16;
     req.nData   = 2;
-    req.data[0] = address;
-    req.data[1] = ((WORD)hostId_ << 4) | 0x0001;  /* Sender: host with host-bit set */
+    req.data[0] = ((WORD)hostId_ << 4) | 0x0001;  /* Sender: host with host-bit */
+    req.data[1] = address;                         /* DM address to read */
 
     DBG_SER(2, "ReadData16 addr=0x%04X", address);
 
@@ -603,15 +785,16 @@ bool TmlChannel::readData16(WORD address, WORD &value)
     if (!receiveMessage(resp, TML_RESP_TIMEOUT_MS))
         return false;
 
-    /* Validate response */
-    if (resp.opCode != TML_OP_TAKE_DATA_16 || resp.nData < 2) {
-        setError("Unexpected response: opCode=0x%04X nData=%d (expected TakeData16)",
-                 resp.opCode, resp.nData);
+    /* TakeData16 layout: data[0]=sender(drive), data[1]=addr echo, data[2]=value
+     * nData = 3 (verified against TML_lib ReceiveData validation @ 0x9f17) */
+    if (resp.opCode != TML_OP_TAKE_DATA_16 || resp.nData < 3) {
+        setError("Unexpected response: opCode=0x%04X nData=%d (expected TakeData16 0x%04X nData>=3)",
+                 resp.opCode, resp.nData, TML_OP_TAKE_DATA_16);
         return false;
     }
 
-    /* resp.data[0] = address (echo), resp.data[1] = value */
-    value = resp.data[1];
+    /* resp.data[0] = drive axis ID, data[1] = address echo, data[2] = value */
+    value = resp.data[2];
 
     DBG_SER(2, "ReadData16 addr=0x%04X → 0x%04X", address, value);
     return true;
@@ -619,13 +802,14 @@ bool TmlChannel::readData16(WORD address, WORD &value)
 
 bool TmlChannel::readData32(WORD address, uint32_t &value)
 {
-    /* Build GiveMeData32 request */
+    /* Build GiveMeData32 request.
+     * Wire data layout: data[0] = sender axis ID, data[1] = DM address. */
     TmlMsg req;
     req.addr    = (WORD)activeAxisId_ << 4;
     req.opCode  = TML_OP_GIVE_ME_DATA_32;
     req.nData   = 2;
-    req.data[0] = address;
-    req.data[1] = ((WORD)hostId_ << 4) | 0x0001;
+    req.data[0] = ((WORD)hostId_ << 4) | 0x0001;   /* Sender: host with host-bit */
+    req.data[1] = address;                          /* DM address to read */
 
     DBG_SER(2, "ReadData32 addr=0x%04X", address);
 
@@ -637,14 +821,17 @@ bool TmlChannel::readData32(WORD address, uint32_t &value)
     if (!receiveMessage(resp, TML_RESP_TIMEOUT_MS))
         return false;
 
-    if (resp.opCode != TML_OP_TAKE_DATA_32 || resp.nData < 3) {
-        setError("Unexpected response: opCode=0x%04X nData=%d (expected TakeData32)",
-                 resp.opCode, resp.nData);
+    /* TakeData32 layout: data[0]=sender(drive), data[1]=addr echo,
+     *                    data[2]=low word, data[3]=high word.  nData=4 */
+    if (resp.opCode != TML_OP_TAKE_DATA_32 || resp.nData < 4) {
+        setError("Unexpected response: opCode=0x%04X nData=%d (expected TakeData32 0x%04X nData>=4)",
+                 resp.opCode, resp.nData, TML_OP_TAKE_DATA_32);
         return false;
     }
 
-    /* resp.data[0] = address, data[1] = low word, data[2] = high word */
-    value = ((uint32_t)resp.data[2] << 16) | (uint32_t)resp.data[1];
+    /* resp.data[0] = drive axis ID, data[1] = addr echo,
+     * data[2] = low word, data[3] = high word */
+    value = ((uint32_t)resp.data[3] << 16) | (uint32_t)resp.data[2];
 
     DBG_SER(2, "ReadData32 addr=0x%04X → 0x%08X (%ld)",
             address, (unsigned)value, (long)(int32_t)value);
@@ -713,6 +900,10 @@ int TS_OpenChannel(LPCSTR pszDevName, BYTE btType, BYTE nHostID, DWORD baudrate)
     g_activeCh = ch;
     g_activeFd = fd;
 
+    printf("tmlSerial: TS_OpenChannel OK — transport=%s dev='%s' fd=%d slot=%d hostId=%d\n",
+           ch->isTcp() ? "TCP" :
+               (btType == CHANNEL_RS485 ? "RS-485" : "RS-232"),
+           pszDevName, fd, slot, nHostID);
     DBG_SER(1, "Channel opened: slot=%d fd=%d", slot, fd);
     return fd;
 }

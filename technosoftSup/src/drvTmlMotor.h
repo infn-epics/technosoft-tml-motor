@@ -23,10 +23,22 @@
 class TmlAxis;
 
 /* ---------- Extra asyn parameters exposed by this driver ---------- */
-#define TML_SRH_String        "TML_SRH"        /* asynInt32, R   */
-#define TML_SRL_String        "TML_SRL"        /* asynInt32, R   */
-#define TML_MER_String        "TML_MER"        /* asynInt32, R   */
-#define TML_SETUP_FILE_String "TML_SETUP_FILE" /* asynOctet, R/W (per-axis) */
+#define TML_SRH_String          "TML_SRH"          /* asynInt32, R   */
+#define TML_SRL_String          "TML_SRL"          /* asynInt32, R   */
+#define TML_MER_String          "TML_MER"          /* asynInt32, R   */
+#define TML_MCR_String          "TML_MCR"          /* asynInt32, R   */
+#define TML_MSR_String          "TML_MSR"          /* asynInt32, R   */
+#define TML_ISR_String          "TML_ISR"          /* asynInt32, R   */
+#define TML_SETUP_FILE_String   "TML_SETUP_FILE"   /* asynOctet, R/W (per-axis) */
+#define TML_ACTIVE_String       "TML_ACTIVE"       /* asynInt32, R   — 1=axis initialized+powered, 0=inactive */
+#define TML_FAULT_TEXT_String   "TML_FAULT_TEXT"    /* asynOctet, R   — human-readable fault string */
+#define TML_APOS_String         "TML_APOS"         /* asynFloat64, R — actual encoder position */
+#define TML_CSPD_String         "TML_CSPD"         /* asynFloat64, R — commanded speed readback */
+#define TML_RESET_FAULT_String  "TML_RESET_FAULT"  /* asynInt32, W   — write 1 to reset faults */
+#define TML_SAVE_EEPROM_String  "TML_SAVE_EEPROM"  /* asynInt32, W   — write 1 to save to EEPROM */
+#define TML_RESET_DRIVE_String  "TML_RESET_DRIVE"  /* asynInt32, W   — write 1 to reset drive */
+
+#define NUM_TML_PARAMS 14
 
 /* ================================================================= */
 /*                         TmlController                              */
@@ -58,6 +70,9 @@ public:
     asynStatus configAxis(int axisNo, int axisId, const char *setupFile,
                           const char *homingSwitch);
 
+    /* Write handler for command parameters (reset fault, save, etc.) */
+    asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
+
     /* Locking around all TML_lib calls (the library is NOT thread-safe) */
     epicsMutex &tmlLock() { return tmlLock_; }
 
@@ -78,7 +93,17 @@ protected:
     int tmlSRH_;
     int tmlSRL_;
     int tmlMER_;
+    int tmlMCR_;
+    int tmlMSR_;
+    int tmlISR_;
     int tmlSetupFile_;
+    int tmlActive_;
+    int tmlFaultText_;
+    int tmlAPOS_;
+    int tmlCSPD_;
+    int tmlResetFault_;
+    int tmlSaveEeprom_;
+    int tmlResetDrive_;
 
     friend class TmlAxis;
 };
@@ -111,9 +136,13 @@ public:
                     double acceleration, int forwards) override;
     asynStatus stop(double acceleration) override;
     asynStatus setPosition(double position) override;
+    asynStatus setClosedLoop(bool closedLoop) override;
     asynStatus poll(bool *moving) override;
 
     void report(FILE *fp, int level) override;
+
+    /* Helper: select this axis's channel + axis before every TML call */
+    asynStatus selectAxis();
 
 private:
     TmlController *pC_;
@@ -121,14 +150,17 @@ private:
     int  axisId_;              /* TML drive address (1-255) */
     int  setupIdx_;            /* Index returned by TS_LoadSetup */
     bool configured_;          /* True after successful configure() */
+    bool activated_;           /* True after DriveInitialisation + Power ON */
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
     bool useLSP_;              /* true = home on LSP, false = LSN */
 
     char setupFile_[512];
 
-    /* Helper: select this axis's channel + axis before every TML call */
-    asynStatus selectAxis();
+    /* Replay LoadSetup+SetupAxis+SelectAxis+DriveInitialisation on current channel.
+     * Called both from configure() and from selectAxis() after a channel reconnect.
+     * Must be called with tmlLock_ held. */
+    asynStatus reinitAxis();
 
     /* Read SRH, SRL, MER registers and set motor-record status bits */
     asynStatus readRegisters(unsigned short &srh, unsigned short &srl, unsigned short &mer);
