@@ -154,6 +154,9 @@ private:
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
     bool useLSP_;              /* true = home on LSP, false = LSN */
+    bool needsReinit_;         /* True if init failed, retry in poll */
+    int  reinitCountdown_;     /* Poll cycles to wait before next retry */
+    int  reinitBackoff_;       /* Current backoff multiplier (doubles each fail) */
 
     char setupFile_[512];
 

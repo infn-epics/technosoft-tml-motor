@@ -134,6 +134,63 @@ void TmlVariableMap::setAddress(const char *name, WORD addr)
     map_[name] = addr;
 }
 
+void TmlVariableMap::merge(const TmlVariableMap &other)
+{
+    for (auto &kv : other.map_) {
+        map_[kv.first] = kv.second;
+    }
+}
+
+int TmlVariableMap::loadFromZip(const char *zipPath)
+{
+    /*
+     * Extract 'variables.cfg' from the .t.zip file using unzip -p
+     * (pipe to stdout).  Each line has the format:
+     *   TYPE  NAME  @0xADDR [optional flags]
+     * e.g.
+     *   LONG    TPOS    @0x02B2
+     *   UINT    MER     @0x08FC
+     *   FIXED   CSPD    @0x02A0
+     */
+    char cmd[1024];
+    snprintf(cmd, sizeof(cmd), "unzip -p '%s' variables.cfg 2>/dev/null", zipPath);
+
+    FILE *fp = popen(cmd, "r");
+    if (!fp) {
+        DBG_SER(0, "loadFromZip: popen failed for '%s'", zipPath);
+        return 0;
+    }
+
+    int count = 0;
+    char line[512];
+    while (fgets(line, sizeof(line), fp)) {
+        /* Skip comments and empty lines */
+        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+            continue;
+
+        /* Parse: TYPE  NAME  @0xADDR */
+        char type[32] = {0}, name[64] = {0}, addrStr[32] = {0};
+        if (sscanf(line, "%31s %63s %31s", type, name, addrStr) < 3)
+            continue;
+
+        /* addrStr should start with '@0x' */
+        if (addrStr[0] != '@' || addrStr[1] != '0' ||
+            (addrStr[2] != 'x' && addrStr[2] != 'X'))
+            continue;
+
+        unsigned int addr = 0;
+        if (sscanf(addrStr + 1, "%x", &addr) != 1)
+            continue;
+
+        map_[name] = (WORD)addr;
+        count++;
+    }
+
+    pclose(fp);
+    DBG_SER(1, "loadFromZip: loaded %d variable addresses from '%s'", count, zipPath);
+    return count;
+}
+
 /* ================================================================= */
 /*               TmlChannel — construction / destruction             */
 /* ================================================================= */
@@ -243,6 +300,59 @@ int TmlChannel::open(const char *devPath, BYTE hostId, DWORD baudRate,
         isTcp_ = true;
         channelType_ = CHANNEL_TCP;
         printf("tmlSerial: TCP connected '%s' fd=%d\n", devPath, fd_);
+
+        /* Give the XPORT serial bridge time to initialise after TCP
+         * connect, then drain any stale bytes it may have queued. */
+        usleep(200000);  /* 200 ms */
+        uint8_t junk[64];
+        int stale = readBytes(junk, sizeof(junk), 50);
+        if (stale > 0) {
+            DBG_SER(1, "Drained %d stale bytes after connect", stale);
+            hexDump("DRAIN", junk, stale);
+        }
+
+        /* ==== XPORT diagnostic probe ====
+         * Send a TML sync byte (0x0D) and a minimal ENDINIT frame
+         * to the drive.  Log whatever comes back.  This helps diagnose
+         * XPORT serial configuration mismatches (baud / parity / stop
+         * bits) or drives that don't respond at all. */
+        printf("tmlSerial: XPORT probe — sending sync byte (0x0D) ...\n");
+        uint8_t syncByte = TML_SYNC_BYTE;
+        if (writeBytes(&syncByte, 1)) {
+            uint8_t probeResp[32];
+            int got = readBytes(probeResp, sizeof(probeResp), 500);
+            if (got > 0) {
+                printf("tmlSerial: XPORT probe — got %d bytes back from sync:\n", got);
+                hexDump("PROBE-SYNC", probeResp, got);
+            } else {
+                printf("tmlSerial: XPORT probe — no response to sync byte (500 ms)\n");
+            }
+        }
+
+        /* Send a minimal ENDINIT to host-ID axis (broadcast-like) */
+        printf("tmlSerial: XPORT probe — sending ENDINIT to axis %d ...\n", hostId_);
+        {
+            TmlMsg probeMsg;
+            probeMsg.addr   = (WORD)hostId_ << 4;
+            probeMsg.opCode = TML_OP_ENDINIT;
+            probeMsg.nData  = 0;
+            uint8_t probeBuf[TML_MAX_MSG_BYTES];
+            int probeLen = serialiseMessage(probeMsg, probeBuf, sizeof(probeBuf));
+            if (probeLen > 0 && writeBytes(probeBuf, probeLen)) {
+                uint8_t probeResp[32];
+                int got = readBytes(probeResp, sizeof(probeResp), 1000);
+                if (got > 0) {
+                    printf("tmlSerial: XPORT probe — got %d bytes back from ENDINIT:\n", got);
+                    hexDump("PROBE-ENDINIT", probeResp, got);
+                } else {
+                    printf("tmlSerial: XPORT probe — no response to ENDINIT (1000 ms)\n");
+                    printf("tmlSerial: HINT: check XPORT serial settings (baud=9600? 8N2? no flow ctrl?)\n");
+                    printf("tmlSerial: HINT: access XPORT web UI at http://%s/ to verify serial config\n",
+                           devPath);
+                }
+            }
+        }
+
         DBG_SER(1, "Opened TCP '%s' fd=%d hostId=%d",
                 devPath, fd_, hostId_);
         return fd_;
@@ -602,18 +712,35 @@ bool TmlChannel::deserialiseMessage(const uint8_t *buf, int len, TmlMsg &msg)
 
 bool TmlChannel::waitAck(int timeoutMs)
 {
+    /*
+     * The drive (or XPORT serial-to-TCP bridge) may insert 0x0D (CR)
+     * padding bytes before the actual ACK. The TML_lib handles this by
+     * reading and discarding CR/LF bytes until the real ACK (0x4F) or
+     * a non-padding byte arrives.
+     */
     uint8_t byte;
-    int n = readBytes(&byte, 1, timeoutMs);
-    if (n == 1 && byte == TML_ACK_BYTE) {
-        DBG_SER(3, "ACK received");
-        return true;
-    }
-
-    if (n == 1) {
+    int elapsed = 0;
+    const int stepMs = 2;  /* small read timeout per attempt */
+    while (elapsed < timeoutMs) {
+        int n = readBytes(&byte, 1, stepMs);
+        if (n != 1) {
+            elapsed += stepMs;
+            continue;
+        }
+        if (byte == TML_ACK_BYTE) {
+            DBG_SER(3, "ACK received");
+            return true;
+        }
+        if (byte == 0x0D || byte == 0x0A) {
+            /* CR/LF padding — skip and keep waiting */
+            DBG_SER(4, "Skipping padding byte 0x%02X before ACK", byte);
+            continue;
+        }
+        /* Non-padding, non-ACK byte — protocol error */
         setError("Expected ACK (0x4F), got 0x%02X", byte);
-    } else {
-        setError("ACK timeout (%d ms)", timeoutMs);
+        return false;
     }
+    setError("ACK timeout (%d ms)", timeoutMs);
     return false;
 }
 
@@ -661,7 +788,12 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
     /* Wait for ACK (RS-485 broadcast msgs don't get ACK, but we always
        send to individual axes in this driver) */
     if (!waitAck()) {
-        /* Try resync + retry once */
+        if (isTcp_) {
+            /* Over TCP, resync (byte-level echo) is meaningless.
+             * Just report the failure — caller can retry. */
+            return false;
+        }
+        /* Serial: try resync + retry once */
         if (resync()) {
             if (!writeBytes(buf, len))
                 return false;
@@ -679,10 +811,25 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
 
 bool TmlChannel::receiveMessage(TmlMsg &msg, int timeoutMs)
 {
-    /* First read the length byte */
+    /* First read the length byte, skipping any CR/LF padding */
     uint8_t lenByte;
-    int n = readBytes(&lenByte, 1, timeoutMs);
-    if (n != 1) {
+    int elapsed = 0;
+    const int stepMs = 2;
+    bool gotLen = false;
+    while (elapsed < timeoutMs) {
+        int n = readBytes(&lenByte, 1, stepMs);
+        if (n != 1) {
+            elapsed += stepMs;
+            continue;
+        }
+        if (lenByte == 0x0D || lenByte == 0x0A) {
+            DBG_SER(4, "Skipping padding byte 0x%02X before response", lenByte);
+            continue;
+        }
+        gotLen = true;
+        break;
+    }
+    if (!gotLen) {
         setError("Timeout waiting for response length byte");
         return false;
     }
@@ -698,7 +845,7 @@ bool TmlChannel::receiveMessage(TmlMsg &msg, int timeoutMs)
     buf[0] = lenByte;
     int remaining = payloadLen + 1;  /* payload bytes + checksum byte */
 
-    n = readBytes(buf + 1, remaining, timeoutMs);
+    int n = readBytes(buf + 1, remaining, timeoutMs);
     if (n != remaining) {
         setError("Incomplete response: got %d of %d bytes", n, remaining);
         return false;
@@ -724,6 +871,51 @@ bool TmlChannel::sendCommand(WORD opCode)
     msg.addr   = (WORD)activeAxisId_ << 4;
     msg.opCode = opCode;
     msg.nData  = 0;
+    return sendMessage(msg);
+}
+
+bool TmlChannel::sendMcrConfig(WORD mask, WORD value)
+{
+    /*
+     * MCR Configuration instruction (TML Manual Chapter 6).
+     * Opcode = 0x5909, with 2 data words:
+     *   Data[0] = AND mask  (bits to preserve)
+     *   Data[1] = OR value  (bits to set)
+     * The drive modifies MCR as: MCR = (MCR & mask) | value
+     * Used for: CPA, CPR, MODE PP, MODE SP, etc.
+     */
+    TmlMsg msg;
+    msg.addr   = (WORD)activeAxisId_ << 4;
+    msg.opCode = TML_OP_MCR_CONFIG;
+    msg.nData  = 2;
+    msg.data[0] = mask;
+    msg.data[1] = value;
+
+    DBG_SER(2, "MCR config mask=0x%04X val=0x%04X", mask, value);
+
+    return sendMessage(msg);
+}
+
+bool TmlChannel::sendSAP(int32_t position)
+{
+    /*
+     * SAP value32: Set Actual Position (TML Manual p.265).
+     * Opcode = 0x8400, with 2 data words:
+     *   Data[0] = LOWORD(position)
+     *   Data[1] = HIWORD(position)
+     * Also corrects the reference value so that the difference between
+     * the position reference and actual position is preserved.
+     */
+    TmlMsg msg;
+    msg.addr   = (WORD)activeAxisId_ << 4;
+    msg.opCode = TML_OP_SAP;
+    msg.nData  = 2;
+    msg.data[0] = (WORD)((uint32_t)position & 0xFFFF);
+    msg.data[1] = (WORD)(((uint32_t)position >> 16) & 0xFFFF);
+
+    DBG_SER(2, "SAP position=%d (0x%08X)", (int)position,
+            (unsigned)(uint32_t)position);
+
     return sendMessage(msg);
 }
 
@@ -945,23 +1137,26 @@ void TS_CloseChannel(int fd)
 
 int TS_LoadSetup(LPCSTR setupPath)
 {
-    /*
-     * In the native serial implementation, TS_LoadSetup stores the
-     * setup path and returns an index.  The setup files (.t.zip) from
-     * EasyMotion Studio contain variable address mappings; parsing them
-     * is optional since we use well-known default addresses.
-     *
-     * If a text file 'variables.cfg' exists alongside the setup,
-     * we could parse it for address overrides.  For now, we just
-     * accept the path and return a valid index.
-     */
     for (int i = 0; i < MAX_SETUPS; i++) {
         if (!g_setups[i].inUse) {
             g_setups[i].inUse = true;
             strncpy(g_setups[i].path, setupPath ? setupPath : "",
                     sizeof(g_setups[i].path) - 1);
-            DBG_SER(1, "LoadSetup[%d]: '%s' (native mode — using default addresses)",
-                    i, g_setups[i].path);
+
+            /*
+             * Parse the .t.zip setup file for firmware-specific variable
+             * addresses.  The variables.cfg inside the ZIP maps TML variable
+             * names to DM addresses that may differ from the "standard"
+             * TML manual addresses depending on the firmware version.
+             */
+            int nVars = g_setups[i].varMap.loadFromZip(g_setups[i].path);
+            if (nVars > 0) {
+                DBG_SER(1, "LoadSetup[%d]: '%s' — loaded %d firmware variable addresses",
+                        i, g_setups[i].path, nVars);
+            } else {
+                DBG_SER(1, "LoadSetup[%d]: '%s' — no variables.cfg, using defaults",
+                        i, g_setups[i].path);
+            }
             return i;
         }
     }
@@ -984,8 +1179,12 @@ BOOL TS_SetupAxis(BYTE axisID, int idxSetup)
 
     DBG_SER(1, "SetupAxis: axisID=%d setup=%d", axisID, idxSetup);
 
-    /* In native mode, we just merge any setup-specific variable overrides
-     * into the channel's variable map. */
+    /* Merge setup-specific variable addresses into the channel's map.
+     * This overrides the default TML manual addresses with the correct
+     * firmware-specific addresses from the .t.zip setup file. */
+    g_activeCh->varMap().merge(g_setups[idxSetup].varMap);
+    DBG_SER(1, "SetupAxis: merged %zu variable addresses from setup into channel",
+            g_setups[idxSetup].varMap.size());
 
     return TRUE;
 }
@@ -1012,16 +1211,24 @@ BOOL TS_DriveInitialisation(void)
     DBG_SER(1, "DriveInitialisation: sending ENDINIT to axis %d",
             g_activeCh->activeAxis());
 
-    /* Send ENDINIT command — validates the setup table on the drive */
-    if (!g_activeCh->sendCommand(TML_OP_ENDINIT)) {
-        strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
-        return FALSE;
+    /* Send ENDINIT command — validates the setup table on the drive.
+     * Retry up to 3 times because the drive/XPORT may not respond
+     * immediately after connection (especially over TCP). */
+    const int maxRetries = 3;
+    for (int i = 0; i < maxRetries; i++) {
+        if (g_activeCh->sendCommand(TML_OP_ENDINIT)) {
+            /* Small delay for drive to process ENDINIT */
+            usleep(100000);  /* 100 ms */
+            return TRUE;
+        }
+        DBG_SER(1, "DriveInitialisation: ENDINIT attempt %d/%d failed: %s",
+                i + 1, maxRetries, g_activeCh->lastError());
+        if (i + 1 < maxRetries)
+            usleep(500000);  /* 500 ms before retry */
     }
 
-    /* Small delay for drive to process ENDINIT */
-    usleep(100000);  /* 100 ms */
-
-    return TRUE;
+    strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
+    return FALSE;
 }
 
 BOOL TS_Power(BOOL Enable)
@@ -1050,18 +1257,26 @@ BOOL TS_ReadStatus(short SelIndex, WORD &Status)
         return FALSE;
     }
 
-    /* Map register index to DM address */
-    WORD addr;
+    /* Map register index to variable name, then resolve via varMap.
+     * This uses the firmware-specific addresses from the .t.zip setup file
+     * rather than hardcoded TML manual addresses. */
+    const char *varName = nullptr;
     switch (SelIndex) {
-        case REG_MCR: addr = TML_DM_MCR; break;
-        case REG_MSR: addr = TML_DM_MSR; break;
-        case REG_ISR: addr = TML_DM_ISR; break;
-        case REG_SRL: addr = TML_DM_SRL; break;
-        case REG_SRH: addr = TML_DM_SRH; break;
-        case REG_MER: addr = TML_DM_MER; break;
+        case REG_MCR: varName = "MCR"; break;
+        case REG_MSR: varName = "MSR"; break;
+        case REG_ISR: varName = "ISR"; break;
+        case REG_SRL: varName = "SRL"; break;
+        case REG_SRH: varName = "SRH"; break;
+        case REG_MER: varName = "MER"; break;
         default:
             setGlobalError("TS_ReadStatus: invalid index %d", SelIndex);
             return FALSE;
+    }
+
+    WORD addr;
+    if (!g_activeCh->varMap().getAddress(varName, addr)) {
+        setGlobalError("TS_ReadStatus: variable '%s' not in map", varName);
+        return FALSE;
     }
 
     if (!g_activeCh->readData16(addr, Status)) {
@@ -1082,18 +1297,12 @@ BOOL TS_SetPosition(long PosValue)
     DBG_SER(1, "SetPosition: %ld", PosValue);
 
     /*
-     * SAP (Set Actual Position): Write to the APOS register and
-     * then send the CPA (copy actual position) command.
+     * Use the SAP (Set Actual Position) instruction.
+     * SAP sets APOS and also corrects the reference value so that
+     * the difference (reference − APOS) is preserved.
+     * (TML Manual p.265, opcode 0x8400 + 2 data words)
      */
-    uint32_t uval = (uint32_t)(int32_t)PosValue;
-
-    if (!g_activeCh->writeData32(TML_DM_APOS, uval)) {
-        strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
-        return FALSE;
-    }
-
-    /* CPA to latch the new position as the reference */
-    if (!g_activeCh->sendCommand(TML_OP_CPA)) {
+    if (!g_activeCh->sendSAP((int32_t)PosValue)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
     }
@@ -1125,7 +1334,7 @@ BOOL TS_ABORT(void)
     }
 
     DBG_SER(1, "ABORT axis %d", g_activeCh->activeAxis());
-    if (!g_activeCh->sendCommand(TML_OP_ABORT)) {
+    if (!g_activeCh->sendCommand(TML_OP_STOP_IMM)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
     }
@@ -1288,6 +1497,19 @@ BOOL TS_SetFixedVariable(LPCSTR pszName, double value)
 /* ---- Motion commands ---- */
 
 /*
+ * Helper: resolve a variable name to a DM address via the active channel's varMap.
+ * Falls back to the compiled default if the variable is not in the map.
+ */
+static WORD resolveAddr(const char *name, WORD fallback)
+{
+    if (!g_activeCh) return fallback;
+    WORD addr;
+    if (g_activeCh->varMap().getAddress(name, addr))
+        return addr;
+    return fallback;
+}
+
+/*
  * Motion command sequence (trapezoidal position profile):
  *   1. Write CACC (acceleration, 32-bit fixed 16.16) if non-zero
  *   2. Write CSPD (speed, 32-bit fixed 16.16) if non-zero
@@ -1311,26 +1533,26 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
     /* 1. Set acceleration (if non-zero) */
     if (Acceleration != 0.0) {
         uint32_t accFixed = doubleToFixed1616(fabs(Acceleration));
-        if (!g_activeCh->writeData32(TML_DM_CACC, accFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CACC", TML_DM_CACC), accFixed)) goto fail;
     }
 
     /* 2. Set speed (if non-zero) */
     if (Speed != 0.0) {
         uint32_t spdFixed = doubleToFixed1616(fabs(Speed));
-        if (!g_activeCh->writeData32(TML_DM_CSPD, spdFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CSPD", TML_DM_CSPD), spdFixed)) goto fail;
     }
 
     /* 3. Set commanded position */
     {
         uint32_t posVal = (uint32_t)(int32_t)AbsPosition;
-        if (!g_activeCh->writeData32(TML_DM_CPOS, posVal)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CPOS", TML_DM_CPOS), posVal)) goto fail;
     }
 
-    /* 4. CPA (copy actual position — sets absolute reference) */
-    if (!g_activeCh->sendCommand(TML_OP_CPA)) goto fail;
+    /* 4. CPA: Set absolute reference mode (MCR bit 13 = 1) */
+    if (!g_activeCh->sendMcrConfig(TML_MCR_CPA_MASK, TML_MCR_CPA_VAL)) goto fail;
 
-    /* 5. MODE PP (position profile, trapezoidal) */
-    if (!g_activeCh->sendCommand(TML_OP_MODE_PP)) goto fail;
+    /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
+    if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
 
     /* 6. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
@@ -1360,26 +1582,26 @@ BOOL TS_MoveRelative(long RelPosition, double Speed, double Acceleration,
     /* 1. Acceleration */
     if (Acceleration != 0.0) {
         uint32_t accFixed = doubleToFixed1616(fabs(Acceleration));
-        if (!g_activeCh->writeData32(TML_DM_CACC, accFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CACC", TML_DM_CACC), accFixed)) goto fail;
     }
 
     /* 2. Speed */
     if (Speed != 0.0) {
         uint32_t spdFixed = doubleToFixed1616(fabs(Speed));
-        if (!g_activeCh->writeData32(TML_DM_CSPD, spdFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CSPD", TML_DM_CSPD), spdFixed)) goto fail;
     }
 
     /* 3. Position */
     {
         uint32_t posVal = (uint32_t)(int32_t)RelPosition;
-        if (!g_activeCh->writeData32(TML_DM_CPOS, posVal)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CPOS", TML_DM_CPOS), posVal)) goto fail;
     }
 
-    /* 4. CPR (copy position — relative reference) */
-    if (!g_activeCh->sendCommand(TML_OP_CPR)) goto fail;
+    /* 4. CPR: Set relative reference mode (MCR bit 13 = 0) */
+    if (!g_activeCh->sendMcrConfig(TML_MCR_CPR_MASK, TML_MCR_CPR_VAL)) goto fail;
 
-    /* 5. MODE PP */
-    if (!g_activeCh->sendCommand(TML_OP_MODE_PP)) goto fail;
+    /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
+    if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
 
     /* 6. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
@@ -1408,17 +1630,17 @@ BOOL TS_MoveVelocity(double Speed, double Acceleration,
     /* 1. Acceleration */
     if (Acceleration != 0.0) {
         uint32_t accFixed = doubleToFixed1616(fabs(Acceleration));
-        if (!g_activeCh->writeData32(TML_DM_CACC, accFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CACC", TML_DM_CACC), accFixed)) goto fail;
     }
 
     /* 2. Speed (signed — direction encoded in the speed value) */
     {
         uint32_t spdFixed = doubleToFixed1616(Speed);
-        if (!g_activeCh->writeData32(TML_DM_CSPD, spdFixed)) goto fail;
+        if (!g_activeCh->writeData32(resolveAddr("CSPD", TML_DM_CSPD), spdFixed)) goto fail;
     }
 
-    /* 3. MODE SP (speed profile) */
-    if (!g_activeCh->sendCommand(TML_OP_MODE_SP)) goto fail;
+    /* 3. MODE SP1 (speed profile with current loop) */
+    if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_SP1_MASK, TML_MCR_MODE_SP1_VAL)) goto fail;
 
     /* 4. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
@@ -1453,15 +1675,16 @@ BOOL TS_SetEventOnMotionComplete(BOOL WaitEvent, BOOL EnableStop)
      * that SRL bit 10 (motion complete) triggers notification.
      * The actual monitoring is done by polling in the EPICS driver.
      */
+    WORD srlMaskAddr = resolveAddr("SRL_MASK", TML_DM_SRL_MASK);
     WORD srlMask;
-    if (!g_activeCh->readData16(TML_DM_SRL_MASK, srlMask)) {
+    if (!g_activeCh->readData16(srlMaskAddr, srlMask)) {
         /* If we can't read, set a sensible default */
         srlMask = 0;
     }
 
     srlMask |= (1 << 10);  /* Enable motion complete event */
 
-    if (!g_activeCh->writeData16(TML_DM_SRL_MASK, srlMask)) {
+    if (!g_activeCh->writeData16(srlMaskAddr, srlMask)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
     }
@@ -1484,8 +1707,9 @@ BOOL TS_SetEventOnLimitSwitch(short LSWType, short TransitionType,
      * Configure limit switch event via MER_MASK register.
      * MER bit 6 = LSP (positive limit), bit 7 = LSN (negative limit).
      */
+    WORD merMaskAddr = resolveAddr("MER_MASK", TML_DM_MER_MASK);
     WORD merMask;
-    if (!g_activeCh->readData16(TML_DM_MER_MASK, merMask)) {
+    if (!g_activeCh->readData16(merMaskAddr, merMask)) {
         merMask = 0;
     }
 
@@ -1495,7 +1719,7 @@ BOOL TS_SetEventOnLimitSwitch(short LSWType, short TransitionType,
         merMask |= (1 << 7);   /* LSN */
     }
 
-    if (!g_activeCh->writeData16(TML_DM_MER_MASK, merMask)) {
+    if (!g_activeCh->writeData16(merMaskAddr, merMask)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
     }
@@ -1525,10 +1749,12 @@ BOOL TS_Save(void)
         return FALSE;
     }
 
-    if (!g_activeCh->sendCommand(TML_OP_SAVE)) {
-        strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
-        return FALSE;
-    }
+    /*
+     * Note: There is no SAVE/EEPROM-write instruction in the TML ISA.
+     * The TML_lib TS_Save function uses proprietary mechanisms.
+     * For now, this is a no-op that logs a warning.
+     */
+    DBG_SER(0, "TS_Save: EEPROM save not implemented in native protocol (no TML ISA equivalent)");
 
     return TRUE;
 }

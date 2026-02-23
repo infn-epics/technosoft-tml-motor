@@ -125,7 +125,8 @@ typedef char*       LPSTR;
 
 /* ================================================================= */
 /*      TML Instruction Opcodes                                      */
-/*  (Binary TML instruction codes — Technosoft TML ISA)              */
+/*  (Binary codes verified from TML Manual:                          */
+/*   P091.055.MCII_.TML_.UM_.0806.pdf, Chapter 6)                   */
 /* ================================================================= */
 
 /*
@@ -148,32 +149,58 @@ typedef char*       LPSTR;
 
 /*
  * Simple control commands (no data words):
- *   Sent as single-opcode TML instructions
+ *   Sent as single-opcode TML instructions.
+ *   Binary codes from TML Manual Chapter 6 instruction reference.
  */
-#define TML_OP_ENDINIT    0x0800  /* End initialization (validate setup) */
-#define TML_OP_AXISON     0x6B01  /* Enable power stage */
-#define TML_OP_AXISOFF    0x6B00  /* Disable power stage */
-#define TML_OP_STOP       0x6C00  /* Decelerated stop (STOP0) */
-#define TML_OP_STOP_IMM   0x6C01  /* Immediate stop (STOP0!) */
-#define TML_OP_FAULTR     0x6B02  /* Reset faults */
-#define TML_OP_UPD        0x6900  /* Update on event */
-#define TML_OP_UPD_IMM    0x6901  /* Update immediate */
-#define TML_OP_ABORT      0x6B04  /* Abort cancelable CALL */
-#define TML_OP_CPA        0x6B05  /* Copy actual position (absolute ref) */
-#define TML_OP_CPR        0x6B06  /* Copy actual position (relative ref) */
-#define TML_OP_SAVE       0x6C04  /* Save parameters to EEPROM */
-#define TML_OP_RESET      0x6C05  /* Reset drive */
-#define TML_OP_STA        0x6908  /* Start (used with events) */
+#define TML_OP_ENDINIT    0x0020  /* End initialization (validate setup)            */
+#define TML_OP_AXISON     0x0102  /* Enable power stage                             */
+#define TML_OP_AXISOFF    0x0002  /* Disable power stage                            */
+#define TML_OP_STOP       0x01C4  /* STOP3: Decelerated stop (uses CACC to brake)   */
+#define TML_OP_STOP_IMM   0x0104  /* STOP0: Immediate stop (voltage → 0)            */
+#define TML_OP_UPD        0x0108  /* UPD:  Update on event                          */
+#define TML_OP_UPD_IMM    0x0008  /* UPD!: Update immediate                         */
+#define TML_OP_RESET      0x0402  /* RESET: Reset DSP processor                     */
+#define TML_OP_FAULTR     0x0402  /* RESET: Clear faults (= RESET; no dedicated     */
+                                  /*        fault-clear instruction in TML ISA)      */
 
 /*
- * Mode selection commands:
- *   MODE PP  = position profile (trapezoidal)
- *   MODE SP  = speed profile
- *   MODE PSC = position S-curve
- * These encode the motion mode into MCR via TML instruction.
+ * SAP value32: Set Actual Position (opcode + 2 data words)
+ *   Data[0] = LOWORD(position), Data[1] = HIWORD(position)
+ *   (TML Manual p.265)
  */
-#define TML_OP_MODE_PP    0x6040  /* Mode: Position Profile */
-#define TML_OP_MODE_SP    0x6041  /* Mode: Speed Profile */
+#define TML_OP_SAP        0x8400
+
+/*
+ * STA: Set Target position = Actual position (opcode + 1 data word)
+ *   Data[0] = APOS_DM_ADDRESS (0x0228)
+ *   (TML Manual p.271)
+ */
+#define TML_OP_STA        0x2CB2
+
+/*
+ * MCR Configuration instruction (0x5909 + 2 data words: AND mask, OR value).
+ * Used for: CPA, CPR, MODE PP/SP/SC/SE, etc.
+ * The instruction modifies the Motion Control Register:
+ *   MCR = (MCR & mask) | value
+ * (TML Manual Chapter 6 — all CPA/CPR/MODE variants share opcode 0x5909)
+ */
+#define TML_OP_MCR_CONFIG     0x5909
+
+/* CPA: Set absolute reference mode (MCR bit 13 = 1) */
+#define TML_MCR_CPA_MASK      0xFFFF
+#define TML_MCR_CPA_VAL       0x2000
+
+/* CPR: Set relative reference mode (MCR bit 13 = 0) */
+#define TML_MCR_CPR_MASK      0xDFFF
+#define TML_MCR_CPR_VAL       0x0000
+
+/* MODE PP3: Position profile, all loops (position+speed+current) */
+#define TML_MCR_MODE_PP3_MASK 0xBFC1
+#define TML_MCR_MODE_PP3_VAL  0x8701
+
+/* MODE SP1: Speed profile with current loop */
+#define TML_MCR_MODE_SP1_MASK 0xBBC1
+#define TML_MCR_MODE_SP1_VAL  0x8301
 
 /* ================================================================= */
 /*      MCR Bit Definitions                                          */
@@ -199,7 +226,7 @@ typedef char*       LPSTR;
 #define TML_ACK_BYTE       0x4F   /* 'O' — acknowledge OK */
 #define TML_SYNC_BYTE      0x0D   /* Synchronization byte */
 #define TML_MAX_SYNC_RETRY 15     /* Max SYNC retries */
-#define TML_ACK_TIMEOUT_MS 100    /* Timeout for ACK (ms) */
+#define TML_ACK_TIMEOUT_MS 500    /* Timeout for ACK (ms) — allows for XPORT TCP latency */
 #define TML_RESP_TIMEOUT_MS 500   /* Timeout for response message (ms) */
 #define TML_MAX_MSG_BYTES  16     /* Max serial message bytes (1+2+2+8+1) */
 
@@ -234,6 +261,23 @@ public:
 
     /** Register the well-known default addresses */
     void registerDefaults();
+
+    /**
+     * Load variable→address mapping from a .t.zip setup file.
+     * Extracts 'variables.cfg' from the ZIP and parses lines like:
+     *    LONG  TPOS  @0x02B2
+     * Overrides default addresses with firmware-specific ones.
+     * @return number of variables loaded, or 0 on error
+     */
+    int loadFromZip(const char *zipPath);
+
+    /**
+     * Merge all entries from another map into this one (overrides existing).
+     */
+    void merge(const TmlVariableMap &other);
+
+    /** @return number of entries in the map */
+    size_t size() const { return map_.size(); }
 
 private:
     std::map<std::string, WORD> map_;
@@ -307,6 +351,19 @@ public:
      * Send a simple TML command (no data words) to the active axis.
      */
     bool sendCommand(WORD opCode);
+
+    /**
+     * Send an MCR configuration instruction (CPA, CPR, MODE PP, etc.).
+     * Sends opcode 0x5909 with 2 data words: AND mask, OR value.
+     * The drive modifies MCR as: MCR = (MCR & mask) | value
+     */
+    bool sendMcrConfig(WORD mask, WORD value);
+
+    /**
+     * Send SAP (Set Actual Position) instruction.
+     * opcode = 0x8400, data[0] = LOWORD, data[1] = HIWORD
+     */
+    bool sendSAP(int32_t position);
 
     /**
      * Write a 16-bit value to a DM address on the active axis.

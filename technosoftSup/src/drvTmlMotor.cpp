@@ -255,6 +255,9 @@ TmlAxis::TmlAxis(TmlController *pC, int axisNo)
     , powered_(false)
     , homingActive_(false)
     , useLSP_(false)
+    , needsReinit_(false)
+    , reinitCountdown_(0)
+    , reinitBackoff_(1)
 {
     memset(setupFile_, 0, sizeof(setupFile_));
     /* Publish initial inactive state */
@@ -301,8 +304,23 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
     asynStatus st = reinitAxis();
     pC_->tmlLock_.unlock();
 
-    if (st != asynSuccess)
-        return st;
+    if (st != asynSuccess) {
+        /* Even if init failed (drive unresponsive), mark the axis as
+         * configured so the poll loop can re-attempt initialisation.
+         * This prevents the IOC from refusing to start when the drive
+         * is temporarily offline or the XPORT needs more time. */
+        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                  "TmlAxis[%d]: init failed, will retry in poll loop: %s\n",
+                  axisNo_, TS_GetLastErrorText());
+        configured_ = true;
+        activated_  = false;    /* triggers reinit on first poll */
+        needsReinit_ = true;
+        pC_->setStringParam(axisNo_, pC_->tmlSetupFile_, setupFile_);
+        setIntegerParam(pC_->tmlActive_, 0);
+        setStringParam(pC_->tmlFaultText_, "Drive not responding — will retry");
+        callParamCallbacks();
+        return asynSuccess;   /* don't block IOC startup */
+    }
 
     configured_ = true;
     activated_  = true;
@@ -325,13 +343,16 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
  * Must be called with tmlLock_ held and channel already selected.     */
 asynStatus TmlAxis::reinitAxis()
 {
-    /* Load setup file (or reuse cached index — reload to be safe) */
-    setupIdx_ = TS_LoadSetup(setupFile_);
+    /* Reuse existing setup slot if already loaded — avoids slot leak
+     * on repeated retries.  Only load fresh on first call. */
     if (setupIdx_ < 0) {
-        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-                  "TmlAxis[%d]: reinit TS_LoadSetup('%s') FAILED: %s\n",
-                  axisNo_, setupFile_, TS_GetLastErrorText());
-        return asynError;
+        setupIdx_ = TS_LoadSetup(setupFile_);
+        if (setupIdx_ < 0) {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: reinit TS_LoadSetup('%s') FAILED: %s\n",
+                      axisNo_, setupFile_, TS_GetLastErrorText());
+            return asynError;
+        }
     }
 
     if (!TS_SetupAxis((BYTE)axisId_, setupIdx_)) {
@@ -688,6 +709,39 @@ asynStatus TmlAxis::poll(bool *moving)
 {
     *moving = false;
     if (!configured_) return asynSuccess;
+
+    /* If initialisation failed at startup, retry with exponential backoff */
+    if (needsReinit_) {
+        if (reinitCountdown_ > 0) {
+            reinitCountdown_--;
+            setIntegerParam(pC_->motorStatusCommsError_, 1);
+            callParamCallbacks();
+            return asynSuccess;  /* waiting for backoff to expire */
+        }
+        pC_->tmlLock_.lock();
+        TS_SelectChannel(pC_->channelFd_);
+        asynStatus rst = reinitAxis();
+        pC_->tmlLock_.unlock();
+        if (rst != asynSuccess) {
+            /* Exponential backoff: 1, 2, 4, 8, ... up to 30 poll cycles
+             * At 1s idle poll, this means 1s, 2s, 4s, 8s, 16s, 30s */
+            reinitCountdown_ = reinitBackoff_;
+            if (reinitBackoff_ < 30) reinitBackoff_ *= 2;
+            if (reinitBackoff_ > 30) reinitBackoff_ = 30;
+            DBG(1, "Axis %d: reinit failed, next retry in %d poll cycles",
+                axisNo_, reinitCountdown_);
+            setIntegerParam(pC_->motorStatusCommsError_, 1);
+            callParamCallbacks();
+            return asynSuccess;
+        }
+        needsReinit_ = false;
+        activated_ = true;
+        DBG(1, "Axis %d: deferred init succeeded", axisNo_);
+        setIntegerParam(pC_->tmlActive_, 1);
+        setIntegerParam(pC_->motorStatusCommsError_, 0);
+        setStringParam(pC_->tmlFaultText_, "");
+        callParamCallbacks();
+    }
 
     pC_->tmlLock_.lock();
     asynStatus st = selectAxis();
