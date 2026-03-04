@@ -157,11 +157,10 @@ typedef char*       LPSTR;
 #define TML_OP_AXISOFF    0x0002  /* Disable power stage                            */
 #define TML_OP_STOP       0x01C4  /* STOP3: Decelerated stop (uses CACC to brake)   */
 #define TML_OP_STOP_IMM   0x0104  /* STOP0: Immediate stop (voltage → 0)            */
-#define TML_OP_UPD        0x0108  /* UPD:  Update on event                          */
-#define TML_OP_UPD_IMM    0x0008  /* UPD!: Update immediate                         */
-#define TML_OP_RESET      0x0402  /* RESET: Reset DSP processor                     */
-#define TML_OP_FAULTR     0x0402  /* RESET: Clear faults (= RESET; no dedicated     */
-                                  /*        fault-clear instruction in TML ISA)      */
+#define TML_OP_UPD        0x0008  /* UPD:  Update on event (arm trigger, bit8=0)    */
+#define TML_OP_UPD_IMM    0x0108  /* UPD!: Update immediate (start motion, bit8=1)  */
+#define TML_OP_RESET      0x0402  /* RESET: Reset DSP processor (DANGEROUS!)        */
+/* Fault clearing: write 0 to MER register, no dedicated opcode in TML ISA */
 
 /*
  * SAP value32: Set Actual Position (opcode + 2 data words)
@@ -493,6 +492,13 @@ BOOL TS_SetEventOnLimitSwitch(short LSWType, short TransitionType,
 BOOL TS_UpdateImmediate(void);
 BOOL TS_Save(void);
 BOOL TS_Reset(void);
+
+/* Disable drive-level limit switch protection by clearing MER_MASK bits.
+ * disableLSP: clear MER_MASK bit 6 (positive limit)
+ * disableLSN: clear MER_MASK bit 7 (negative limit)
+ * MER register still reflects hardware state for informational readback.
+ */
+BOOL TS_DisableLimitProtection(BOOL disableLSP, BOOL disableLSN);
 
 #ifdef __cplusplus
 }

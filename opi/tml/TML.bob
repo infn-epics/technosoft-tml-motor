@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>TML</name>
+  <width>766</width>
+  <height>647</height>
+  <background_color>
+    <color red="237" green="236" blue="235">
+    </color>
+  </background_color>
+  <actions>
+  </actions>
+  <scripts>
+    <script file="Scripts/LoadDevice.py" check_connections="false">
+      <pv_name>loc://DeviceZone_$(DID)</pv_name>
+    </script>
+  </scripts>
+  <grid_step_x>5</grid_step_x>
+  <grid_step_y>5</grid_step_y>
+  <widget type="embedded" version="2.0.0">
+    <name>TML_AXIS</name>
+    <file>TML_Main.bob</file>
+    <width>766</width>
+    <height>699</height>
+    <resize>2</resize>
+    <transparent>true</transparent>
+    <actions>
+    </actions>
+    <scripts>
+      <script file="Scripts/DeviceSelectDefault.py" check_connections="false">
+        <pv_name>loc://DeviceName_$(DID)</pv_name>
+        <pv_name>loc://DeviceZone_$(DID)</pv_name>
+      </script>
+    </scripts>
+    <border_color>
+      <color name="IO Border" red="215" green="215" blue="215">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>DeviceCombo</name>
+    <pv_name>loc://DeviceName_$(DID)&lt;VString&gt;("")</pv_name>
+    <x>175</x>
+    <y>45</y>
+    <width>231</width>
+    <height>38</height>
+    <font>
+      <font family="Sans" style="BOLD" size="10.891089108910892">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="IO Foreground" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="IO OutputPV Fg" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <actions>
+    </actions>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_85</name>
+    <text>Device Selection</text>
+    <x>10</x>
+    <y>56</y>
+    <width>176</width>
+    <height>25</height>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="IO Label" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+    <border_color>
+      <color red="0" green="128" blue="255">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_86</name>
+    <text>ZONE</text>
+    <x>450</x>
+    <y>56</y>
+    <width>176</width>
+    <height>25</height>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="IO Label" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+    <border_color>
+      <color red="0" green="128" blue="255">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>DeviceZone</name>
+    <pv_name>loc://DeviceZone_$(DID)&lt;VString&gt;("ALL")</pv_name>
+    <x>530</x>
+    <y>45</y>
+    <width>231</width>
+    <height>38</height>
+    <font>
+      <font family="Sans" style="BOLD" size="10.891089108910892">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="IO Foreground" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="IO OutputPV Fg" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <actions>
+    </actions>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+</display>

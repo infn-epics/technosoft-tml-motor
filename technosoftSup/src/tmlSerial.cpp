@@ -240,9 +240,9 @@ bool TmlChannel::configurePort(DWORD baudRate)
     cfsetispeed(&tty, spd);
     cfsetospeed(&tty, spd);
 
-    /* TML serial: 8 data bits, 2 stop bits, no parity */
+    /* TML serial: 8 data bits, 1 stop bit, no parity (8N1) */
     tty.c_cflag &= ~PARENB;        /* No parity */
-    tty.c_cflag |=  CSTOPB;        /* 2 stop bits */
+    tty.c_cflag &= ~CSTOPB;        /* 1 stop bit */
     tty.c_cflag &= ~CSIZE;
     tty.c_cflag |=  CS8;           /* 8 data bits */
 
@@ -301,8 +301,8 @@ int TmlChannel::open(const char *devPath, BYTE hostId, DWORD baudRate,
         channelType_ = CHANNEL_TCP;
         printf("tmlSerial: TCP connected '%s' fd=%d\n", devPath, fd_);
 
-        /* Give the XPORT serial bridge time to initialise after TCP
-         * connect, then drain any stale bytes it may have queued. */
+        /* Give the serial bridge (Moxa NPort, XPORT, etc.) time to
+         * initialise after TCP connect, then drain any stale bytes. */
         usleep(200000);  /* 200 ms */
         uint8_t junk[64];
         int stale = readBytes(junk, sizeof(junk), 50);
@@ -311,55 +311,13 @@ int TmlChannel::open(const char *devPath, BYTE hostId, DWORD baudRate,
             hexDump("DRAIN", junk, stale);
         }
 
-        /* ==== XPORT diagnostic probe ====
-         * Send a TML sync byte (0x0D) and a minimal ENDINIT frame
-         * to the drive.  Log whatever comes back.  This helps diagnose
-         * XPORT serial configuration mismatches (baud / parity / stop
-         * bits) or drives that don't respond at all. */
-        printf("tmlSerial: XPORT probe — sending sync byte (0x0D) ...\n");
-        uint8_t syncByte = TML_SYNC_BYTE;
-        if (writeBytes(&syncByte, 1)) {
-            uint8_t probeResp[32];
-            int got = readBytes(probeResp, sizeof(probeResp), 500);
-            if (got > 0) {
-                printf("tmlSerial: XPORT probe — got %d bytes back from sync:\n", got);
-                hexDump("PROBE-SYNC", probeResp, got);
-            } else {
-                printf("tmlSerial: XPORT probe — no response to sync byte (500 ms)\n");
-            }
-        }
-
-        /* Send a minimal ENDINIT to host-ID axis (broadcast-like) */
-        printf("tmlSerial: XPORT probe — sending ENDINIT to axis %d ...\n", hostId_);
-        {
-            TmlMsg probeMsg;
-            probeMsg.addr   = (WORD)hostId_ << 4;
-            probeMsg.opCode = TML_OP_ENDINIT;
-            probeMsg.nData  = 0;
-            uint8_t probeBuf[TML_MAX_MSG_BYTES];
-            int probeLen = serialiseMessage(probeMsg, probeBuf, sizeof(probeBuf));
-            if (probeLen > 0 && writeBytes(probeBuf, probeLen)) {
-                uint8_t probeResp[32];
-                int got = readBytes(probeResp, sizeof(probeResp), 1000);
-                if (got > 0) {
-                    printf("tmlSerial: XPORT probe — got %d bytes back from ENDINIT:\n", got);
-                    hexDump("PROBE-ENDINIT", probeResp, got);
-                } else {
-                    printf("tmlSerial: XPORT probe — no response to ENDINIT (1000 ms)\n");
-                    printf("tmlSerial: HINT: check XPORT serial settings (baud=9600? 8N2? no flow ctrl?)\n");
-                    printf("tmlSerial: HINT: access XPORT web UI at http://%s/ to verify serial config\n",
-                           devPath);
-                }
-            }
-        }
-
         DBG_SER(1, "Opened TCP '%s' fd=%d hostId=%d",
                 devPath, fd_, hostId_);
         return fd_;
     }
 
     /* ---- Serial port mode ---- */
-    printf("tmlSerial: opening serial '%s' (baud=%u, 8N2, %s, hostId=%d)\n",
+    printf("tmlSerial: opening serial '%s' (baud=%u, 8N1, %s, hostId=%d)\n",
            devPath, (unsigned)baudRate,
            channelType == CHANNEL_RS485 ? "RS-485" : "RS-232",
            hostId_);
@@ -707,20 +665,28 @@ bool TmlChannel::deserialiseMessage(const uint8_t *buf, int len, TmlMsg &msg)
 }
 
 /* ================================================================= */
-/*               ACK handling and re-synchronisation                 */
+/*               ACK handling                                        */
 /* ================================================================= */
 
 bool TmlChannel::waitAck(int timeoutMs)
 {
     /*
-     * The drive (or XPORT serial-to-TCP bridge) may insert 0x0D (CR)
-     * padding bytes before the actual ACK. The TML_lib handles this by
-     * reading and discarding CR/LF bytes until the real ACK (0x4F) or
-     * a non-padding byte arrives.
+     * After sending a command the drive replies with a single ACK byte
+     * (0x4F = 'O').  On the wire there may be:
+     *   - 0x0D / 0x0A padding (CR/LF inserted by bridges)
+     *   - 0x00 null bytes (Moxa NPort, socat, bridge init artefacts)
+     *   - stale response bytes from a previous operation that wasn't
+     *     fully consumed (e.g. after a timeout/retry on another axis)
+     *
+     * Strategy: keep reading and discarding ALL unexpected bytes until
+     * the ACK byte arrives or the timeout expires.  This is safe because
+     * after a command the only valid single-byte response from the drive
+     * is 0x4F.  Any other byte is junk/stale data.
      */
     uint8_t byte;
     int elapsed = 0;
     const int stepMs = 2;  /* small read timeout per attempt */
+    int junkCount = 0;
     while (elapsed < timeoutMs) {
         int n = readBytes(&byte, 1, stepMs);
         if (n != 1) {
@@ -728,19 +694,17 @@ bool TmlChannel::waitAck(int timeoutMs)
             continue;
         }
         if (byte == TML_ACK_BYTE) {
-            DBG_SER(3, "ACK received");
+            if (junkCount > 0)
+                DBG_SER(1, "ACK received after skipping %d unexpected bytes", junkCount);
+            else
+                DBG_SER(3, "ACK received");
             return true;
         }
-        if (byte == 0x0D || byte == 0x0A) {
-            /* CR/LF padding — skip and keep waiting */
-            DBG_SER(4, "Skipping padding byte 0x%02X before ACK", byte);
-            continue;
-        }
-        /* Non-padding, non-ACK byte — protocol error */
-        setError("Expected ACK (0x4F), got 0x%02X", byte);
-        return false;
+        /* Skip any non-ACK byte — log it for diagnostics */
+        junkCount++;
+        DBG_SER(2, "waitAck: skipping byte 0x%02X (%d skipped so far)", byte, junkCount);
     }
-    setError("ACK timeout (%d ms)", timeoutMs);
+    setError("ACK timeout (%d ms, skipped %d bytes)", timeoutMs, junkCount);
     return false;
 }
 
@@ -778,6 +742,19 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
         return false;
     }
 
+    /* Drain any stale bytes left in the receive buffer from previous
+     * operations (partial responses, async drive notifications, etc.).
+     * This prevents stale data from being misinterpreted as the ACK
+     * or response to the command we're about to send. */
+    {
+        uint8_t junk[64];
+        int stale = readBytes(junk, sizeof(junk), 1);  /* 1 ms non-blocking drain */
+        if (stale > 0) {
+            DBG_SER(1, "Drained %d stale RX bytes before send", stale);
+            hexDump("DRAIN", junk, stale);
+        }
+    }
+
     DBG_SER(3, "TX [%d bytes] addr=0x%04X op=0x%04X nData=%d",
             len, msg.addr, msg.opCode, msg.nData);
     hexDump("TX", buf, len);
@@ -785,23 +762,26 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
     if (!writeBytes(buf, len))
         return false;
 
-    /* Wait for ACK (RS-485 broadcast msgs don't get ACK, but we always
-       send to individual axes in this driver) */
+    /* Wait for ACK */
     if (!waitAck()) {
-        if (isTcp_) {
-            /* Over TCP, resync (byte-level echo) is meaningless.
-             * Just report the failure — caller can retry. */
-            return false;
+        /* ACK failed — retry the command once after a short delay.
+         * Do NOT use resync (0x0D byte) — on a multi-drive RS-485 bus
+         * the sync byte is received by ALL drives, corrupting bus state. */
+        DBG_SER(1, "No ACK, retrying command once after drain+delay");
+        usleep(50000);  /* 50 ms settle */
+
+        /* Drain anything that arrived during the wait */
+        uint8_t junk[64];
+        int stale = readBytes(junk, sizeof(junk), 10);
+        if (stale > 0) {
+            DBG_SER(1, "Drained %d bytes before retry", stale);
+            hexDump("DRAIN", junk, stale);
         }
-        /* Serial: try resync + retry once */
-        if (resync()) {
-            if (!writeBytes(buf, len))
-                return false;
-            if (!waitAck()) {
-                setError("No ACK after resync retry");
-                return false;
-            }
-        } else {
+
+        if (!writeBytes(buf, len))
+            return false;
+        if (!waitAck()) {
+            /* Still no ACK — give up */
             return false;
         }
     }
@@ -811,34 +791,37 @@ bool TmlChannel::sendMessage(const TmlMsg &msg)
 
 bool TmlChannel::receiveMessage(TmlMsg &msg, int timeoutMs)
 {
-    /* First read the length byte, skipping any CR/LF padding */
+    /* First read the length byte, skipping any padding/junk bytes.
+     * On RS-232 via socat/Moxa, null bytes (0x00), CR (0x0D) and
+     * LF (0x0A) can appear between frames.  Valid TML payload lengths
+     * are 4..12, so any byte outside that range is junk. */
     uint8_t lenByte;
     int elapsed = 0;
     const int stepMs = 2;
     bool gotLen = false;
+    int skipped = 0;
     while (elapsed < timeoutMs) {
         int n = readBytes(&lenByte, 1, stepMs);
         if (n != 1) {
             elapsed += stepMs;
             continue;
         }
-        if (lenByte == 0x0D || lenByte == 0x0A) {
-            DBG_SER(4, "Skipping padding byte 0x%02X before response", lenByte);
-            continue;
+        if (lenByte >= 4 && lenByte <= 12) {
+            gotLen = true;
+            break;
         }
-        gotLen = true;
-        break;
+        /* Skip junk byte */
+        skipped++;
+        DBG_SER(2, "receiveMessage: skipping junk byte 0x%02X (%d skipped)", lenByte, skipped);
     }
     if (!gotLen) {
-        setError("Timeout waiting for response length byte");
+        setError("Timeout waiting for response length byte (skipped %d junk bytes)", skipped);
         return false;
     }
+    if (skipped > 0)
+        DBG_SER(1, "receiveMessage: skipped %d junk bytes before length byte 0x%02X", skipped, lenByte);
 
     int payloadLen = lenByte;
-    if (payloadLen < 4 || payloadLen > 12) {
-        setError("Invalid response payload length: %d", payloadLen);
-        return false;
-    }
 
     /* Read the rest: payload + checksum */
     uint8_t buf[TML_MAX_MSG_BYTES];
@@ -877,21 +860,26 @@ bool TmlChannel::sendCommand(WORD opCode)
 bool TmlChannel::sendMcrConfig(WORD mask, WORD value)
 {
     /*
-     * MCR Configuration instruction (TML Manual Chapter 6).
-     * Opcode = 0x5909, with 2 data words:
-     *   Data[0] = AND mask  (bits to preserve)
-     *   Data[1] = OR value  (bits to set)
-     * The drive modifies MCR as: MCR = (MCR & mask) | value
-     * Used for: CPA, CPR, MODE PP, MODE SP, etc.
+     * CHMOD instruction (TML ISA opcode 0x5909 + 2 data words).
+     *
+     * This is a TML assembly instruction processed by the drive's
+     * instruction processor.  It modifies MCR as:
+     *     MCR = (MCR & mask) | value
+     * and triggers the associated state machine transitions (mode change,
+     * reference base switch, etc.).
+     *
+     * This is NOT the same as writing MCR via the online communication
+     * protocol (WriteData16) — CHMOD has side effects in the motion
+     * control firmware that a raw register write does not.
      */
     TmlMsg msg;
     msg.addr   = (WORD)activeAxisId_ << 4;
-    msg.opCode = TML_OP_MCR_CONFIG;
+    msg.opCode = TML_OP_MCR_CONFIG;   /* 0x5909 */
     msg.nData  = 2;
     msg.data[0] = mask;
     msg.data[1] = value;
 
-    DBG_SER(2, "MCR config mask=0x%04X val=0x%04X", mask, value);
+    DBG_SER(2, "CHMOD mask=0x%04X val=0x%04X → axis %d", mask, value, activeAxisId_);
 
     return sendMessage(msg);
 }
@@ -1349,8 +1337,23 @@ BOOL TS_ResetFault(void)
         return FALSE;
     }
 
-    DBG_SER(1, "ResetFault axis %d", g_activeCh->activeAxis());
-    if (!g_activeCh->sendCommand(TML_OP_FAULTR)) {
+    DBG_SER(1, "ResetFault axis %d — clearing MER", g_activeCh->activeAxis());
+
+    /* Read current MER for diagnostics */
+    WORD mer = 0;
+    WORD merAddr = TML_DM_MER;
+    {
+        WORD resolved;
+        if (g_activeCh->varMap().getAddress("MER", resolved))
+            merAddr = resolved;
+    }
+    g_activeCh->readData16(merAddr, mer);
+    if (mer != 0)
+        DBG_SER(1, "ResetFault: MER=0x%04X before clear", mer);
+
+    /* Clear faults by writing 0 to MER (Motion Error Register).
+     * This is safer than sending RESET/0x0402 which would reset the DSP. */
+    if (!g_activeCh->writeData16(merAddr, 0)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
     }
@@ -1554,11 +1557,29 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
     /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
     if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
 
+    /* 5b. FROM_REFERENCE: set MCR bit 5 if requested (trajectory starts
+     *     from reference position rather than measured position) */
+    if (ReferenceBase == FROM_REFERENCE) {
+        if (!g_activeCh->sendMcrConfig(0xFFFF, MCR_BIT_REF_BASE)) goto fail;
+    }
+
     /* 6. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
         if (!g_activeCh->sendCommand(TML_OP_UPD_IMM)) goto fail;
     } else if (MoveMoment == UPDATE_ON_EVENT) {
         if (!g_activeCh->sendCommand(TML_OP_UPD)) goto fail;
+    }
+
+    /* Post-UPD diagnostic: check if motion actually started */
+    {
+        WORD srl = 0, mer = 0;
+        g_activeCh->readData16(resolveAddr("SRL", TML_DM_SRL), srl);
+        g_activeCh->readData16(resolveAddr("MER", TML_DM_MER), mer);
+        bool mc = (srl & (1 << 10)) != 0;  /* motion complete */
+        DBG_SER(1, "MoveAbsolute POST-UPD: SRL=0x%04X MER=0x%04X motionComplete=%d",
+                srl, mer, mc);
+        if (mc && mer != 0)
+            DBG_SER(0, "WARNING: motion blocked — MER=0x%04X (limit switches active?)", mer);
     }
 
     return TRUE;
@@ -1602,6 +1623,11 @@ BOOL TS_MoveRelative(long RelPosition, double Speed, double Acceleration,
 
     /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
     if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
+
+    /* 5b. FROM_REFERENCE: set MCR bit 5 if requested */
+    if (ReferenceBase == FROM_REFERENCE) {
+        if (!g_activeCh->sendMcrConfig(0xFFFF, MCR_BIT_REF_BASE)) goto fail;
+    }
 
     /* 6. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
@@ -1769,6 +1795,51 @@ BOOL TS_Reset(void)
     if (!g_activeCh->sendCommand(TML_OP_RESET)) {
         strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
         return FALSE;
+    }
+
+    return TRUE;
+}
+
+BOOL TS_DisableLimitProtection(BOOL disableLSP, BOOL disableLSN)
+{
+    if (!g_activeCh) {
+        setGlobalError("TS_DisableLimitProtection: no active channel");
+        return FALSE;
+    }
+
+    WORD merMaskAddr = resolveAddr("MER_MASK", TML_DM_MER_MASK);
+    WORD merMask = 0;
+    if (!g_activeCh->readData16(merMaskAddr, merMask)) {
+        merMask = 0;  /* safe default: all events disabled */
+    }
+
+    WORD orig = merMask;
+    if (disableLSP)
+        merMask &= ~(WORD)(1 << 6);  /* clear LSP event bit */
+    if (disableLSN)
+        merMask &= ~(WORD)(1 << 7);  /* clear LSN event bit */
+
+    DBG_SER(1, "DisableLimitProtection: MER_MASK 0x%04X → 0x%04X (disLSP=%d disLSN=%d)",
+            orig, merMask, (int)disableLSP, (int)disableLSN);
+
+    if (!g_activeCh->writeData16(merMaskAddr, merMask)) {
+        strncpy(g_lastError, g_activeCh->lastError(), sizeof(g_lastError) - 1);
+        return FALSE;
+    }
+
+    /* Also clear any already-latched limit bits in MER so the drive
+     * doesn't keep blocking motion based on stale state */
+    WORD merAddr = resolveAddr("MER", TML_DM_MER);
+    WORD mer = 0;
+    g_activeCh->readData16(merAddr, mer);
+    if (mer != 0) {
+        WORD newMer = mer;
+        if (disableLSP) newMer &= ~(WORD)(1 << 6);
+        if (disableLSN) newMer &= ~(WORD)(1 << 7);
+        if (newMer != mer) {
+            DBG_SER(1, "DisableLimitProtection: clearing MER 0x%04X → 0x%04X", mer, newMer);
+            g_activeCh->writeData16(merAddr, newMer);
+        }
     }
 
     return TRUE;

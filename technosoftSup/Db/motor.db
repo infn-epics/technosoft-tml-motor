@@ -48,6 +48,10 @@ record(motor, "$(P)$(M)") {
   field(VMAX, "$(VELO)")
   field(VELO, "$(VELO)")
   field(ACCS, "$(ACCS=1)")
+  field(HVEL, "$(HVEL=$(VELO))")
+  field(JVEL, "$(JVEL=$(VELO))")
+  field(JAR,  "$(JAR=0)")
+  field(UEIP, "$(UEIP=Yes)")
 }
 
 record(bo, "$(P)$(M)_able") {

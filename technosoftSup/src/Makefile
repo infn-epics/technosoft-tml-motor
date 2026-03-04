@@ -16,7 +16,7 @@ DBD += devTechnosoft.dbd
 # Set in configure/CONFIG_SITE or on the command line:
 #   make USE_TML_NATIVE=YES
 # -------------------------------------------------------
-USE_TML_NATIVE ?= NO
+USE_TML_NATIVE ?= YES
 
 ifeq ($(USE_TML_NATIVE),YES)
 

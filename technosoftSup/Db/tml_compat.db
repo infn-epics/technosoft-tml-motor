@@ -1,0 +1,348 @@
+#
+# tml_compat.db -- Compatibility bridge: legacy TML OPI PVs -> asyn motor record
+#
+# This template creates PVs matching the legacy NDS-based TML IOC naming
+# convention so that the existing Phoebus OPI screens (TML_Main.bob, etc.)
+# work with the new asyn motor driver.
+#
+# Macros:
+#   P     -- Common PV prefix with trailing colon (e.g. "SPARC:MOT:TML:")
+#   M     -- Axis name = last colon segment (e.g. "GUNFLG01")
+#   PORT  -- Asyn port name (e.g. "tml-ch1")
+#   ADDR  -- Axis number, 0-based
+#
+# Motor record PV:  $(P)$(M)           e.g. SPARC:MOT:TML:GUNFLG01
+# Legacy OPI PV:    $(P)$(M):SUFFIX    e.g. SPARC:MOT:TML:GUNFLG01:STAT
+#
+
+# =====================================================================
+# Motor Status bits (mbbiDirect for .B0-.BF field access)
+# Legacy: MSTA.B0, .B1, ..., .BE
+# =====================================================================
+record(mbbiDirect, "$(P)$(M):MSTA") {
+  field(DESC, "Motor status bits (compat)")
+  field(INP,  "$(P)$(M).MSTA CP MS")
+}
+
+# =====================================================================
+# TML Status Registers (mbbiDirect for bit-field access)
+# Legacy: RSRH_RB.B0..BF, RSRL_RB.B0..BF, RMER_RB.B0..BF
+# =====================================================================
+record(mbbiDirect, "$(P)$(M):RSRH_RB") {
+  field(DESC, "TML SRH register bits (compat)")
+  field(INP,  "$(P)$(M):SRH CP MS")
+}
+
+record(mbbiDirect, "$(P)$(M):RSRL_RB") {
+  field(DESC, "TML SRL register bits (compat)")
+  field(INP,  "$(P)$(M):SRL CP MS")
+}
+
+record(mbbiDirect, "$(P)$(M):RMER_RB") {
+  field(DESC, "TML MER register bits (compat)")
+  field(INP,  "$(P)$(M):MER CP MS")
+}
+
+# =====================================================================
+# Connection / Active status
+# Legacy: STAT  (numeric: 2=DISABLED, 4=PROCESSING, 6=ERROR)
+# New:    $(P)$(M):ACTIVE (0=Inactive, 1=Active)
+# Map: ACTIVE=1 -> 4 (PROCESSING), ACTIVE=0 -> 2 (DISABLED)
+# =====================================================================
+record(calc, "$(P)$(M):STAT") {
+  field(DESC, "Axis state (compat)")
+  field(INPA, "$(P)$(M):ACTIVE CP MS")
+  field(CALC, "A=1?4:2")
+}
+
+# =====================================================================
+# Position readback
+# Legacy: RBV -- position readback (ustep)
+# Legacy: VAL_RB -- dial value readback
+# =====================================================================
+record(ai, "$(P)$(M):RBV") {
+  field(DESC, "Position readback (compat)")
+  field(INP,  "$(P)$(M).RBV CP MS")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):VAL_RB") {
+  field(DESC, "Dial value readback (compat)")
+  field(INP,  "$(P)$(M).DVAL CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Position setpoint
+# Legacy: VAL_SP -- write desired position
+# =====================================================================
+record(ao, "$(P)$(M):VAL_SP") {
+  field(DESC, "Position setpoint (compat)")
+  field(OUT,  "$(P)$(M).VAL PP")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Busy / Moving indicator
+# Legacy: BUSY  (1=moving, 0=idle)
+# =====================================================================
+record(calc, "$(P)$(M):BUSY") {
+  field(DESC, "Busy/moving flag (compat)")
+  field(INPA, "$(P)$(M).MOVN CP MS")
+  field(CALC, "A")
+}
+
+# =====================================================================
+# Potentiometer / actual position readback (progress bar)
+# Legacy: POTM_RB -- raw encoder position (0..65535 range)
+# Map from APOS (actual encoder) -- users may need to adjust scaling
+# =====================================================================
+record(ai, "$(P)$(M):POTM_RB") {
+  field(DESC, "Actual position readback (compat)")
+  field(INP,  "$(P)$(M):APOS CP MS")
+  field(PREC, "0")
+}
+
+# =====================================================================
+# Velocity settings
+# Legacy: VELO_SP / VELO_RB
+# =====================================================================
+record(ao, "$(P)$(M):VELO_SP") {
+  field(DESC, "Move speed setpoint (compat)")
+  field(OUT,  "$(P)$(M).VELO PP")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):VELO_RB") {
+  field(DESC, "Move speed readback (compat)")
+  field(INP,  "$(P)$(M).VELO CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Acceleration settings
+# Legacy: ACCL_SP / ACCL_RB
+# =====================================================================
+record(ao, "$(P)$(M):ACCL_SP") {
+  field(DESC, "Move accel setpoint (compat)")
+  field(OUT,  "$(P)$(M).ACCL PP")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):ACCL_RB") {
+  field(DESC, "Move accel readback (compat)")
+  field(INP,  "$(P)$(M).ACCL CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Homing velocity
+# Legacy: HVEL_SP / HVEL_RB
+# =====================================================================
+record(ao, "$(P)$(M):HVEL_SP") {
+  field(DESC, "Home speed setpoint (compat)")
+  field(OUT,  "$(P)$(M).HVEL PP")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):HVEL_RB") {
+  field(DESC, "Home speed readback (compat)")
+  field(INP,  "$(P)$(M).HVEL CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Jog velocity
+# Legacy: JVEL_SP / JVEL_RB
+# =====================================================================
+record(ao, "$(P)$(M):JVEL_SP") {
+  field(DESC, "Jog speed setpoint (compat)")
+  field(OUT,  "$(P)$(M).JVEL PP")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):JVEL_RB") {
+  field(DESC, "Jog speed readback (compat)")
+  field(INP,  "$(P)$(M).JVEL CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Jog acceleration rate
+# Legacy: JAR_SP / JAR_RB
+# =====================================================================
+record(ao, "$(P)$(M):JAR_SP") {
+  field(DESC, "Jog accel setpoint (compat)")
+  field(OUT,  "$(P)$(M).JAR PP")
+  field(PREC, "3")
+}
+
+record(ai, "$(P)$(M):JAR_RB") {
+  field(DESC, "Jog accel readback (compat)")
+  field(INP,  "$(P)$(M).JAR CP MS")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# Homing acceleration rate (not in standard motor record; local storage)
+# Legacy: HAR_SP / HAR_RB
+# =====================================================================
+record(ao, "$(P)$(M):HAR_SP") {
+  field(DESC, "Home accel setpoint (local)")
+  field(PREC, "3")
+  field(VAL,  "100")
+  field(PINI, "YES")
+  field(FLNK, "$(P)$(M):HAR_RB")
+}
+
+record(ai, "$(P)$(M):HAR_RB") {
+  field(DESC, "Home accel readback (local)")
+  field(INP,  "$(P)$(M):HAR_SP")
+  field(PREC, "3")
+}
+
+# =====================================================================
+# EGU to mm conversion factor (local, user-configurable)
+# Legacy: EGU2MM
+# =====================================================================
+record(ao, "$(P)$(M):EGU2MM") {
+  field(DESC, "EGU to mm conversion factor")
+  field(PREC, "8")
+  field(VAL,  "0")
+  field(PINI, "YES")
+}
+
+# =====================================================================
+# Position readback in mm (calculated)
+# Legacy: MM_RBV, VAL_MM_RB, VAL_MM_SP
+# =====================================================================
+record(calc, "$(P)$(M):MM_RBV") {
+  field(DESC, "Position readback in mm")
+  field(INPA, "$(P)$(M).RBV CP MS")
+  field(INPB, "$(P)$(M):EGU2MM CP MS")
+  field(CALC, "B>0?A*B:0")
+  field(PREC, "4")
+}
+
+record(calc, "$(P)$(M):VAL_MM_RB") {
+  field(DESC, "Dial value readback in mm")
+  field(INPA, "$(P)$(M).DVAL CP MS")
+  field(INPB, "$(P)$(M):EGU2MM CP MS")
+  field(CALC, "B>0?A*B:0")
+  field(PREC, "4")
+}
+
+record(ao, "$(P)$(M):VAL_MM_SP") {
+  field(DESC, "Position setpoint in mm")
+  field(PREC, "4")
+  field(FLNK, "$(P)$(M):VAL_MM_SP_calc")
+}
+
+record(calcout, "$(P)$(M):VAL_MM_SP_calc") {
+  field(DESC, "Mm to ustep conversion")
+  field(INPA, "$(P)$(M):VAL_MM_SP")
+  field(INPB, "$(P)$(M):EGU2MM")
+  field(CALC, "B>0?A/B:0")
+  field(OUT,  "$(P)$(M).VAL PP")
+}
+
+# =====================================================================
+# Action selector (legacy state machine concept)
+# Legacy: ACT -- combo box with action names
+# Legacy: ACT_RB -- current action readback
+# Legacy: ACTX_SP -- execute action (1=START, 2=STOP)
+# =====================================================================
+record(mbbo, "$(P)$(M):ACT") {
+  field(DESC, "Action selector (compat)")
+  field(ZRST, "NONE")
+  field(ONST, "MOVE ABS")
+  field(TWST, "MOVE REL")
+  field(THST, "HOME")
+  field(FRST, "JOG FORWARD")
+  field(FVST, "JOG REVERSE")
+  field(SXST, "TML SUB")
+  field(PINI, "YES")
+}
+
+record(stringin, "$(P)$(M):ACT_RB") {
+  field(DESC, "Current action readback")
+  field(VAL,  "NONE")
+  field(PINI, "YES")
+}
+
+record(longout, "$(P)$(M):ACTX_SP") {
+  field(DESC, "Execute action (compat)")
+  field(FLNK, "$(P)$(M):ACTX_exec")
+}
+
+# Execute action: 1=START, 2=STOP
+record(calcout, "$(P)$(M):ACTX_exec") {
+  field(DESC, "Action executor")
+  field(INPA, "$(P)$(M):ACTX_SP")
+  field(INPB, "$(P)$(M):ACT")
+  field(INPC, "$(P)$(M):VAL_SP")
+  field(CALC, "A=2?1:0")
+  field(OOPT, "When Non-zero")
+  field(DOPT, "Use CALC")
+  field(OUT,  "$(P)$(M).STOP PP")
+}
+
+# =====================================================================
+# Messages / command channel
+# Legacy: MSGS -- write START/STOP/RESET commands
+# =====================================================================
+record(longout, "$(P)$(M):MSGS") {
+  field(DESC, "Command messages (compat)")
+  field(FLNK, "$(P)$(M):MSGS_proc")
+}
+
+record(calcout, "$(P)$(M):MSGS_proc") {
+  field(DESC, "Process message commands")
+  field(INPA, "$(P)$(M):MSGS")
+  field(CALC, "A")
+  field(OOPT, "When Non-zero")
+  field(DOPT, "Use CALC")
+  field(OUT,  "$(P)$(M):CMD:RSTFAULT PP")
+}
+
+# =====================================================================
+# TML subroutine name (local, not directly supported in asyn driver)
+# Legacy: TSUB, TSUB_SP
+# =====================================================================
+record(stringin, "$(P)$(M):TSUB") {
+  field(DESC, "TML subroutine name (read)")
+  field(VAL,  "")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(M):TSUB_SP") {
+  field(DESC, "TML subroutine name (set)")
+  field(OUT,  "$(P)$(M):TSUB PP")
+}
+
+# =====================================================================
+# Digital outputs (local; pass-through to driver if asyn params added)
+# Legacy: DOUT_SP, DOUT_RB
+# =====================================================================
+record(mbbiDirect, "$(P)$(M):DOUT_RB") {
+  field(DESC, "Digital output readback (compat)")
+  field(INP,  "$(P)$(M):DOUT_SP CP MS")
+}
+
+record(mbboDirect, "$(P)$(M):DOUT_SP") {
+  field(DESC, "Digital output setpoint (compat)")
+}
+
+# =====================================================================
+# Test error trigger (local stub)
+# Legacy: TMCE
+# =====================================================================
+record(bo, "$(P)$(M):TMCE") {
+  field(DESC, "Test error trigger (stub)")
+  field(ZNAM, "Idle")
+  field(ONAM, "Trigger")
+  field(HIGH, "0.5")
+}
+
+
+# =====================================================================

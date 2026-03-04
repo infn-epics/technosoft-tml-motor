@@ -15,7 +15,7 @@ technosoft_DBD += devTechnosoft.dbd
 # -------------------------------------------------------
 # Build mode selection (must match technosoftSup)
 # -------------------------------------------------------
-USE_TML_NATIVE ?= NO
+USE_TML_NATIVE ?= YES
 
 ifeq ($(USE_TML_NATIVE),YES)
 USR_CPPFLAGS += -DUSE_TML_NATIVE

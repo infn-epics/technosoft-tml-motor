@@ -6,8 +6,16 @@
  *
  * Architecture
  * ------------
- *   TmlController  — one per RS-232/485/CAN/XPORT channel
- *   TmlAxis        — one per physical drive on the channel
+ *   TmlController  — one per RS-232/485/CAN/XPORT channel.
+ *                    Owns the single TML channel fd shared by all axes.
+ *   TmlAxis        — one per physical drive on the channel.
+ *                    Each axis maintains its own TML_lib setup.
+ *
+ * Recovery strategy: when the shared channel breaks, selectAxis()
+ * reconnects it and reinits only the requesting axis.  Other axes
+ * are lazily marked needsReinit_ and re-setup themselves on their
+ * next poll cycle.  This avoids cascade TS_DriveInitialisation
+ * storms that reset all drives and stop motion.
  *
  * The TML communication layer is NOT thread-safe; every call is
  * serialized through tmlLock_ (an epicsMutex in the controller).
@@ -25,6 +33,7 @@
 #include <unistd.h>
 
 #include <epicsThread.h>
+#include <epicsTime.h>
 #include <epicsExport.h>
 #include <iocsh.h>
 #include <asynOctetSyncIO.h>
@@ -114,6 +123,7 @@ TmlController::TmlController(const char *portName, const char *devicePath,
 {
     strncpy(devicePath_, devicePath, sizeof(devicePath_) - 1);
     devicePath_[sizeof(devicePath_) - 1] = '\0';
+    memset(&lastReconnect_, 0, sizeof(lastReconnect_));
 
     /* Create extra parameters */
     createParam(TML_SRH_String,          asynParamInt32,    &tmlSRH_);
@@ -131,7 +141,7 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     createParam(TML_SAVE_EEPROM_String,  asynParamInt32,    &tmlSaveEeprom_);
     createParam(TML_RESET_DRIVE_String,  asynParamInt32,    &tmlResetDrive_);
 
-    /* Open the TML communication channel */
+    /* Open the TML communication channel (shared by all axes) */
     char devName[256];
     tmlDevName(devicePath_, devName, sizeof(devName));
     int chType = tmlChannelType(devicePath_);
@@ -182,7 +192,8 @@ TmlAxis *TmlController::getTmlAxis(asynUser *pasynUser)
 
 asynStatus TmlController::configAxis(int axisNo, int axisId,
                                      const char *setupFile,
-                                     const char *homingSwitch)
+                                     const char *homingSwitch,
+                                     int ignoreLSP, int ignoreLSN)
 {
     TmlAxis *pAxis = getTmlAxis(axisNo);
     if (!pAxis) {
@@ -190,7 +201,8 @@ asynStatus TmlController::configAxis(int axisNo, int axisId,
                   "%s: axis %d does not exist\n", driverName, axisNo);
         return asynError;
     }
-    return pAxis->configure(axisId, setupFile, homingSwitch);
+    return pAxis->configure(axisId, setupFile, homingSwitch,
+                            ignoreLSP != 0, ignoreLSN != 0);
 }
 
 void TmlController::report(FILE *fp, int level)
@@ -255,9 +267,12 @@ TmlAxis::TmlAxis(TmlController *pC, int axisNo)
     , powered_(false)
     , homingActive_(false)
     , useLSP_(false)
+    , ignoreLSP_(false)
+    , ignoreLSN_(false)
     , needsReinit_(false)
     , reinitCountdown_(0)
     , reinitBackoff_(1)
+    , pollCount_(0)
 {
     memset(setupFile_, 0, sizeof(setupFile_));
     /* Publish initial inactive state */
@@ -279,7 +294,8 @@ TmlAxis::~TmlAxis()
 
 /* ---- configure ---- */
 asynStatus TmlAxis::configure(int axisId, const char *setupFile,
-                               const char *homingSwitch)
+                               const char *homingSwitch,
+                               bool ignoreLSP, bool ignoreLSN)
 {
     if (pC_->channelFd_ < 0) {
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -288,6 +304,8 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
     }
 
     axisId_ = axisId;
+    ignoreLSP_ = ignoreLSP;
+    ignoreLSN_ = ignoreLSN;
     strncpy(setupFile_, setupFile, sizeof(setupFile_) - 1);
 
     if (homingSwitch && (strcmp(homingSwitch, "LSP") == 0 ||
@@ -296,34 +314,46 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
     else
         useLSP_ = false;
 
+    if (ignoreLSP_ || ignoreLSN_)
+        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
+                  "TmlAxis[%d]: limit switch reporting: ignoreLSP=%d ignoreLSN=%d\n",
+                  axisNo_, (int)ignoreLSP_, (int)ignoreLSN_);
+
     pC_->tmlLock_.lock();
+
+    /* Mark as configured INSIDE the lock so the reconnect logic in
+     * selectAxis() always sees this axis.  Without this, a reconnect
+     * triggered by the poller between unlock() and the assignment
+     * would skip this axis and its TML_lib setup would be lost. */
+    configured_ = true;
 
     /* Select our channel */
     TS_SelectChannel(pC_->channelFd_);
 
     asynStatus st = reinitAxis();
+    if (st != asynSuccess) {
+        activated_  = false;
+        needsReinit_ = true;
+    } else {
+        activated_  = true;
+        needsReinit_ = false;
+    }
     pC_->tmlLock_.unlock();
 
     if (st != asynSuccess) {
-        /* Even if init failed (drive unresponsive), mark the axis as
-         * configured so the poll loop can re-attempt initialisation.
+        /* Even if init failed (drive unresponsive), the axis is already
+         * marked configured so the poll loop can re-attempt initialisation.
          * This prevents the IOC from refusing to start when the drive
          * is temporarily offline or the XPORT needs more time. */
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
                   "TmlAxis[%d]: init failed, will retry in poll loop: %s\n",
                   axisNo_, TS_GetLastErrorText());
-        configured_ = true;
-        activated_  = false;    /* triggers reinit on first poll */
-        needsReinit_ = true;
         pC_->setStringParam(axisNo_, pC_->tmlSetupFile_, setupFile_);
         setIntegerParam(pC_->tmlActive_, 0);
         setStringParam(pC_->tmlFaultText_, "Drive not responding — will retry");
         callParamCallbacks();
         return asynSuccess;   /* don't block IOC startup */
     }
-
-    configured_ = true;
-    activated_  = true;
     /* Note: power stage is enabled lazily on first move via powerOn().
      * Calling TS_Power(TRUE) here can cause XPORT TCP connection resets
      * which invalidate the channel fd before the poller thread starts. */
@@ -376,21 +406,76 @@ asynStatus TmlAxis::reinitAxis()
         return asynError;
     }
 
+    /* Disable drive-level limit switch protection for unconnected inputs.
+     * Without this, the drive firmware blocks motion in the corresponding
+     * direction even though the limit switch input is just floating. */
+    if (ignoreLSP_ || ignoreLSN_) {
+        if (!TS_DisableLimitProtection(ignoreLSP_ ? TRUE : FALSE,
+                                       ignoreLSN_ ? TRUE : FALSE)) {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: TS_DisableLimitProtection FAILED: %s\n",
+                      axisNo_, TS_GetLastErrorText());
+            /* Not fatal — continue anyway */
+        }
+    }
+
     DBG(1, "Axis %d reinit OK: TML-ID=%d setupIdx=%d", axisNo_, axisId_, setupIdx_);
     return asynSuccess;
 }
 
-/* ---- selectAxis helper ---- */
+/* ---- selectAxis helper ----
+ *
+ * Shared channel with lazy per-axis recovery:
+ *   All axes share one TML channel (TML_lib only allows one
+ *   TS_OpenChannel per physical serial port).  When the channel
+ *   breaks, selectAxis() reconnects it ONCE and reinits only
+ *   the requesting axis.  Other axes are marked needsReinit_
+ *   and re-setup themselves lazily on their next poll cycle.
+ *   This avoids the cascade TS_DriveInitialisation storm that
+ *   resets all drives and stops motion.
+ *
+ *   Tier 1  Retry TS_SelectChannel up to 3 times with short delays.
+ *           Handles transient timeouts through socat/Moxa.
+ *   Tier 2  Rate-limit: if we reconnected within the last 3 s,
+ *           skip the expensive close/reopen/reinit cycle and
+ *           just return asynError so the caller can retry later.
+ *   Tier 3  Full reconnect: close channel, reopen, reinit only
+ *           THIS axis.  Mark all other axes needsReinit_ for lazy
+ *           recovery on their next poll.
+ */
 asynStatus TmlAxis::selectAxis()
 {
     if (!configured_ || pC_->channelFd_ < 0)
         return asynError;
 
-    if (!TS_SelectChannel(pC_->channelFd_)) {
-        /* Channel may have been invalidated (e.g. XPORT TCP reconnect after
-         * drive reset).  Try to reopen with the original parameters. */
-        DBG(0, "TS_SelectChannel(%d) failed (%s) — attempting reconnect",
-            pC_->channelFd_, TS_GetLastErrorText());
+    /* ---- Tier 1: retry TS_SelectChannel (transient failures) ---- */
+    bool channelOk = false;
+    for (int retry = 0; retry < 3; retry++) {
+        if (TS_SelectChannel(pC_->channelFd_)) {
+            channelOk = true;
+            break;
+        }
+        if (retry < 2) {
+            DBG(1, "TS_SelectChannel(%d) axis %d retry %d/3",
+                pC_->channelFd_, axisNo_, retry + 1);
+            epicsThreadSleep(0.05);   /* 50 ms between retries */
+        }
+    }
+
+    if (!channelOk) {
+        /* ---- Tier 2: reconnect cooldown ---- */
+        epicsTimeStamp now;
+        epicsTimeGetCurrent(&now);
+        double elapsed = epicsTimeDiffInSeconds(&now, &pC_->lastReconnect_);
+        if (elapsed < 3.0 && pC_->lastReconnect_.secPastEpoch > 0) {
+            DBG(1, "TS_SelectChannel(%d) axis %d failed (%.1fs since last reconnect — cooldown)",
+                pC_->channelFd_, axisNo_, elapsed);
+            return asynError;
+        }
+
+        /* ---- Tier 3: full reconnect ---- */
+        DBG(0, "Axis %d: TS_SelectChannel(%d) failed (%s) — reconnecting",
+            axisNo_, pC_->channelFd_, TS_GetLastErrorText());
         TS_CloseChannel(pC_->channelFd_);
         char devName[256];
         tmlDevName(pC_->devicePath_, devName, sizeof(devName));
@@ -398,31 +483,70 @@ asynStatus TmlAxis::selectAxis()
         int newFd = TS_OpenChannel(devName, (BYTE)chType,
                                    (BYTE)pC_->hostId_, (DWORD)pC_->baudRate_);
         if (newFd < 0) {
-            DBG(0, "Reconnect failed: %s", TS_GetLastErrorText());
+            DBG(0, "Axis %d: reconnect failed: %s", axisNo_, TS_GetLastErrorText());
             pC_->channelFd_ = -1;
+            epicsTimeGetCurrent(&pC_->lastReconnect_);
             return asynError;
         }
         pC_->channelFd_ = newFd;
-        DBG(0, "Reconnected: new fd=%d — replaying axis setup", newFd);
+        epicsTimeGetCurrent(&pC_->lastReconnect_);
+        DBG(0, "Axis %d: reconnected, new fd=%d", axisNo_, newFd);
         if (!TS_SelectChannel(pC_->channelFd_)) {
-            DBG(0, "TS_SelectChannel after reconnect failed: %s", TS_GetLastErrorText());
+            DBG(0, "Axis %d: TS_SelectChannel after reconnect failed: %s",
+                axisNo_, TS_GetLastErrorText());
             return asynError;
         }
-        /* Replay full TML axis initialisation on the new channel */
+
+        /* Mark ALL OTHER axes as needing lazy reinit on their next poll.
+         * Do NOT call reinitAxis() / TS_DriveInitialisation on them now —
+         * that would reset drives and stop motion (the cascade storm). */
+        for (int ax = 0; ax < pC_->numAxes_; ax++) {
+            TmlAxis *pAx = pC_->getTmlAxis(ax);
+            if (!pAx || !pAx->configured_ || ax == axisNo_) continue;
+            pAx->setupIdx_        = -1;   /* force fresh TS_LoadSetup */
+            pAx->needsReinit_     = true;
+            pAx->reinitCountdown_ = 0;    /* reinit on next poll */
+            pAx->reinitBackoff_   = 1;
+            pAx->activated_       = false;
+            pAx->powered_         = false;
+            pAx->setIntegerParam(pC_->tmlActive_, 0);
+            pAx->callParamCallbacks();
+            DBG(1, "Axis %d: marked for lazy reinit after channel reconnect", ax);
+        }
+
+        /* Reinit THIS axis immediately so we can proceed */
+        setupIdx_ = -1;   /* force fresh TS_LoadSetup on new channel */
         if (reinitAxis() != asynSuccess) {
-            DBG(0, "reinitAxis after reconnect FAILED for axis %d", axisId_);
+            DBG(0, "Axis %d: reinitAxis after reconnect FAILED", axisNo_);
+            activated_       = false;
+            powered_         = false;
+            needsReinit_     = true;
+            reinitCountdown_ = 1;
+            reinitBackoff_   = 1;
+            setIntegerParam(pC_->tmlActive_, 0);
+            callParamCallbacks();
             return asynError;
         }
-        /* Drive was re-initialised — power stage is off, update state */
-        powered_ = false;
-        setIntegerParam(pC_->tmlActive_, activated_ ? 1 : 0);
+
+        DBG(0, "Axis %d: reinitAxis after reconnect OK (fd=%d)", axisNo_, newFd);
+        powered_      = false;  /* power stage is off after reinit */
+        needsReinit_  = false;
+        activated_    = true;
+        setIntegerParam(pC_->tmlActive_, 1);
         callParamCallbacks();
-        /* After reinitAxis, axis is selected — skip the TS_SelectAxis below */
         return asynSuccess;
     }
 
     if (!TS_SelectAxis((BYTE)axisId_)) {
-        DBG(0, "TS_SelectAxis(%d) failed: %s", axisId_, TS_GetLastErrorText());
+        DBG(0, "Axis %d: TS_SelectAxis(%d) failed: %s",
+            axisNo_, axisId_, TS_GetLastErrorText());
+        /* TML_lib setup for this axis was lost (e.g. channel reconnect
+         * by another axis, or internal library state corruption).
+         * Flag for lazy reinit so the poll loop retries. */
+        needsReinit_  = true;
+        activated_    = false;
+        reinitCountdown_ = 0;
+        reinitBackoff_   = 1;
         return asynError;
     }
     return asynSuccess;
@@ -441,7 +565,10 @@ asynStatus TmlAxis::powerOn()
         return asynError;
     }
 
-    /* Wait for the power stage to actually turn on (SRL bit 15) */
+    /* Wait for the power stage to actually turn on (SRL bit 15).
+     * Keep tmlLock_ held throughout so the poller cannot trigger a
+     * reconnect (and TS_DriveInitialisation on all axes) while
+     * we are waiting for the power stage to stabilise. */
     for (int i = 0; i < 50; i++) {   /* up to 5 seconds */
         WORD srl = 0;
         TS_ReadStatus(REG_SRL, srl);
@@ -453,10 +580,7 @@ asynStatus TmlAxis::powerOn()
             DBG(2, "Axis %d powered ON", axisNo_);
             return asynSuccess;
         }
-        pC_->tmlLock_.unlock();
         epicsThreadSleep(0.1);
-        pC_->tmlLock_.lock();
-        selectAxis();
     }
 
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -486,15 +610,21 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d move %s pos=%.0f vel=%.2f acc=%.2f",
+    DBG(1, "CMD Axis %d: move %s pos=%.0f vel=%.2f acc=%.2f (.VAL write)",
         axisNo_, relative ? "REL" : "ABS", position, maxVelocity, acceleration);
 
     pC_->tmlLock_.lock();
     asynStatus st = selectAxis();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: move ABORTED — selectAxis failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     st = powerOn();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: move ABORTED — powerOn failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     homingActive_ = false;
 
@@ -503,10 +633,10 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
 
     if (relative) {
         ok = TS_MoveRelative(pos, maxVelocity, acceleration,
-                             FALSE, UPDATE_IMMEDIATE, FROM_MEASURE);
+                             FALSE, UPDATE_IMMEDIATE, FROM_REFERENCE);
     } else {
         ok = TS_MoveAbsolute(pos, maxVelocity, acceleration,
-                             UPDATE_IMMEDIATE, FROM_MEASURE);
+                             UPDATE_IMMEDIATE, FROM_REFERENCE);
     }
 
     if (ok) {
@@ -516,12 +646,15 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
     pC_->tmlLock_.unlock();
 
     if (!ok) {
+        DBG(1, "CMD Axis %d: move FAILED — %s", axisNo_, TS_GetLastErrorText());
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
                   "TmlAxis[%d]: move FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
     }
 
+    DBG(1, "CMD Axis %d: move %s pos=%ld OK — motion started",
+        axisNo_, relative ? "REL" : "ABS", pos);
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
     callParamCallbacks();
@@ -534,28 +667,38 @@ asynStatus TmlAxis::moveVelocity(double minVelocity, double maxVelocity,
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d moveVelocity vel=%.2f acc=%.2f", axisNo_, maxVelocity, acceleration);
+    DBG(1, "CMD Axis %d: jog vel=%.2f acc=%.2f (.JOGF/.JOGR write)",
+        axisNo_, maxVelocity, acceleration);
 
     pC_->tmlLock_.lock();
     asynStatus st = selectAxis();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: jog ABORTED — selectAxis failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     st = powerOn();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: jog ABORTED — powerOn failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     homingActive_ = false;
 
     BOOL ok = TS_MoveVelocity(maxVelocity, acceleration,
-                              UPDATE_IMMEDIATE, FROM_MEASURE);
+                              UPDATE_IMMEDIATE, FROM_REFERENCE);
     pC_->tmlLock_.unlock();
 
     if (!ok) {
+        DBG(1, "CMD Axis %d: jog FAILED — %s", axisNo_, TS_GetLastErrorText());
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
                   "TmlAxis[%d]: moveVelocity FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
     }
 
+    DBG(1, "CMD Axis %d: jog %s vel=%.2f OK — motion started",
+        axisNo_, maxVelocity > 0 ? "FWD" : "REV", maxVelocity);
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
     callParamCallbacks();
@@ -568,48 +711,80 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d home forwards=%d vel=%.2f", axisNo_, forwards, maxVelocity);
+    /* Guard: if HVEL is 0, fall back to VELO from the motor record */
+    if (maxVelocity == 0.0) {
+        double velo = 0;
+        pC_->getDoubleParam(axisNo_, pC_->motorVelocity_, &velo);
+        if (velo > 0) {
+            maxVelocity = velo;
+            DBG(1, "CMD Axis %d: home — HVEL=0, using VELO=%.2f instead",
+                axisNo_, maxVelocity);
+        } else {
+            DBG(1, "CMD Axis %d: home REJECTED — both HVEL and VELO are 0",
+                axisNo_);
+            return asynError;
+        }
+    }
+    if (acceleration == 0.0) {
+        acceleration = 1.0;  /* safe default: 1 EGU/s² */
+        DBG(1, "CMD Axis %d: home — acc=0, using default 1.0", axisNo_);
+    }
+
+    DBG(1, "CMD Axis %d: home %s vel=%.2f acc=%.2f (.HOM%c write)",
+        axisNo_, forwards ? "FORWARD(LSP)" : "REVERSE(LSN)",
+        maxVelocity, acceleration, forwards ? 'F' : 'R');
 
     pC_->tmlLock_.lock();
     asynStatus st = selectAxis();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: home ABORTED — selectAxis failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     st = powerOn();
-    if (st != asynSuccess) { pC_->tmlLock_.unlock(); return st; }
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: home ABORTED — powerOn failed", axisNo_);
+        pC_->tmlLock_.unlock(); return st;
+    }
 
     /*
-     * Homing strategy (identical to the original NDS driver):
-     *   1. Start a velocity move towards the chosen limit switch (LSP/LSN).
-     *   2. Set an event on limit switch.
-     *   3. The poller will detect motion-complete when the limit switch fires.
-     *   4. Then it sets the position to 0.
+     * Homing strategy:
+     *   - HOMF (forwards=1): move towards the POSITIVE limit switch (LSP)
+     *   - HOMR (forwards=0): move towards the NEGATIVE limit switch (LSN)
+     *   1. Start a velocity move towards the chosen limit switch.
+     *   2. Set an event on that limit switch.
+     *   3. The poller detects motion-complete when the LS fires.
+     *   4. Position is set to 0 at the home position.
      */
-    double speed = forwards ? fabs(maxVelocity) : -fabs(maxVelocity);
+    short lsType;
+    double speed;
 
-    /* Choose LS direction based on useLSP_ flag */
-    if (useLSP_) {
-        speed = fabs(maxVelocity);
+    if (forwards) {
+        speed  = fabs(maxVelocity);
+        lsType = LSW_POSITIVE;
     } else {
-        speed = -fabs(maxVelocity);
+        speed  = -fabs(maxVelocity);
+        lsType = LSW_NEGATIVE;
     }
 
     BOOL ok = TS_MoveVelocity(speed, fabs(acceleration),
-                              UPDATE_IMMEDIATE, FROM_MEASURE);
+                              UPDATE_IMMEDIATE, FROM_REFERENCE);
     if (ok) {
-        short lsType = useLSP_ ? LSW_POSITIVE : LSW_NEGATIVE;
-        short transition = useLSP_ ? TRANSITION_LOW_TO_HIGH : TRANSITION_LOW_TO_HIGH;
-        ok = TS_SetEventOnLimitSwitch(lsType, transition, TRUE, TRUE);
+        ok = TS_SetEventOnLimitSwitch(lsType, TRANSITION_LOW_TO_HIGH, TRUE, TRUE);
     }
 
     pC_->tmlLock_.unlock();
 
     if (!ok) {
+        DBG(1, "CMD Axis %d: home FAILED — %s", axisNo_, TS_GetLastErrorText());
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
                   "TmlAxis[%d]: home FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
     }
 
+    DBG(1, "CMD Axis %d: home %s OK — homing started",
+        axisNo_, forwards ? "FORWARD(LSP)" : "REVERSE(LSN)");
     homingActive_ = true;
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
@@ -623,7 +798,7 @@ asynStatus TmlAxis::stop(double acceleration)
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d stop", axisNo_);
+    DBG(1, "CMD Axis %d: stop (.STOP write)", axisNo_);
 
     pC_->tmlLock_.lock();
     selectAxis();
@@ -647,7 +822,7 @@ asynStatus TmlAxis::setPosition(double position)
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d setPosition %.0f", axisNo_, position);
+    DBG(1, "CMD Axis %d: setPosition %.0f (.SET write)", axisNo_, position);
 
     pC_->tmlLock_.lock();
     asynStatus st = selectAxis();
@@ -657,12 +832,14 @@ asynStatus TmlAxis::setPosition(double position)
     pC_->tmlLock_.unlock();
 
     if (!ok) {
+        DBG(1, "CMD Axis %d: setPosition FAILED — %s", axisNo_, TS_GetLastErrorText());
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
                   "TmlAxis[%d]: setPosition FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
     }
 
+    DBG(1, "CMD Axis %d: setPosition %.0f OK", axisNo_, position);
     return asynSuccess;
 }
 
@@ -671,7 +848,7 @@ asynStatus TmlAxis::setClosedLoop(bool closedLoop)
 {
     if (!configured_) return asynError;
 
-    DBG(2, "Axis %d setClosedLoop %s", axisNo_, closedLoop ? "ON" : "OFF");
+    DBG(1, "CMD Axis %d: closedLoop %s (.CNEN write)", axisNo_, closedLoop ? "ON" : "OFF");
 
     pC_->tmlLock_.lock();
     asynStatus st;
@@ -757,40 +934,51 @@ asynStatus TmlAxis::poll(bool *moving)
         return asynError;
     }
 
-    /* ---- Read position ---- */
-    long pos = 0;
-    BOOL posOk = TS_GetLongVariable("TPOS", pos);
-
-    /* ---- Read actual encoder position (APOS) ---- */
-    long apos = 0;
+    /* ---- Read position: TPOS (trajectory) and APOS (actual/encoder) ---- */
+    long pos = 0, apos = 0;
+    BOOL posOk  = TS_GetLongVariable("TPOS", pos);
     BOOL aposOk = TS_GetLongVariable("APOS", apos);
 
-    /* ---- Read commanded speed (CSPD) as 32-bit fixed 16.16 ---- */
+    /* ---- Read status registers: SRL, MER (minimum set for motion control) ---- */
+    unsigned short srh = 0, srl = 0, mer = 0;
+    WORD srl_w = 0, mer_w = 0;
+    BOOL srlOk = TS_ReadStatus(REG_SRL, srl_w);
+    BOOL merOk = TS_ReadStatus(REG_MER, mer_w);
+    srl = (unsigned short)srl_w;
+    mer = (unsigned short)mer_w;
+
+    /* Only read SRH + extra registers when SRL shows a fault */
+    bool srlFault = (srl & (SRL_BIT_GFLT | SRL_BIT_AFLT)) != 0;
+    WORD mcr_w = 0, msr_w = 0, isr_w = 0, srh_w = 0;
     long cspd_raw = 0;
-    TS_GetLongVariable("CSPD", cspd_raw);
-
-    /* ---- Read additional status registers: MCR, MSR, ISR ---- */
-    WORD mcr_w = 0, msr_w = 0, isr_w = 0;
-    TS_ReadStatus(REG_MCR, mcr_w);
-    TS_ReadStatus(REG_MSR, msr_w);
-    TS_ReadStatus(REG_ISR, isr_w);
-
-    /* ---- Read status registers ---- */
-    unsigned short srh, srl, mer;
-    asynStatus regSt = readRegisters(srh, srl, mer);
+    if (srlFault) {
+        TS_ReadStatus(REG_SRH, srh_w);
+        srh = (unsigned short)srh_w;
+    }
+    /* Read MCR/MSR/ISR/CSPD only every 10th poll to reduce bus traffic */
+    if ((pollCount_ % 10) == 0) {
+        TS_ReadStatus(REG_MCR, mcr_w);
+        TS_ReadStatus(REG_MSR, msr_w);
+        TS_ReadStatus(REG_ISR, isr_w);
+        TS_GetLongVariable("CSPD", cspd_raw);
+    }
+    pollCount_++;
 
     pC_->tmlLock_.unlock();
 
-    if (!posOk || regSt != asynSuccess) {
+    if (!posOk || !srlOk) {
         setIntegerParam(pC_->motorStatusCommsError_, 1);
         callParamCallbacks();
         return asynError;
     }
 
-    /* Position */
+    /* Position: motorPosition_ = TPOS (trajectory generator output)
+     *           motorEncoderPosition_ = APOS (actual encoder position)
+     * The motor record uses UEIP to choose which one feeds RBV:
+     *   UEIP=Yes → RBV = REP (encoder = APOS)
+     *   UEIP=No  → RBV = RMP (motor   = TPOS)
+     * Set UEIP=Yes in substitutions to use actual position. */
     setDoubleParam(pC_->motorPosition_, (double)pos);
-
-    /* Encoder position (APOS) — set both motorEncoderPosition and TML_APOS */
     if (aposOk) {
         setDoubleParam(pC_->motorEncoderPosition_, (double)apos);
         setDoubleParam(pC_->tmlAPOS_, (double)apos);
@@ -856,8 +1044,14 @@ asynStatus TmlAxis::poll(bool *moving)
 
     setIntegerParam(pC_->motorStatusDone_,      motionComplete ? 1 : 0);
     setIntegerParam(pC_->motorStatusMoving_,     *moving ? 1 : 0);
-    setIntegerParam(pC_->motorStatusHighLimit_,  lsp ? 1 : 0);
-    setIntegerParam(pC_->motorStatusLowLimit_,   lsn ? 1 : 0);
+    /* Limit switches: report the real MER state unless the corresponding
+     * ignore flag is set (for floating / unconnected limit switch inputs).
+     * NOTE: the motor record WILL raise MAJOR/STATE alarm when HLS or LLS
+     * goes to 1 — this is hardcoded in the motor record and cannot be
+     * suppressed.  Set ignoreLSP/ignoreLSN=1 in TmlAxisConfig for axes
+     * where the limit switch input is not wired to avoid false alarms. */
+    setIntegerParam(pC_->motorStatusHighLimit_,  (!ignoreLSP_ && lsp) ? 1 : 0);
+    setIntegerParam(pC_->motorStatusLowLimit_,   (!ignoreLSN_ && lsn) ? 1 : 0);
     setIntegerParam(pC_->motorStatusPowerOn_,    axisON ? 1 : 0);
     setIntegerParam(pC_->motorStatusProblem_,    fault ? 1 : 0);
     setIntegerParam(pC_->motorStatusCommsError_, 0);
@@ -880,10 +1074,18 @@ asynStatus TmlAxis::poll(bool *moving)
 
     /* Homing complete logic: if we were homing and motion is now complete */
     if (homingActive_ && motionComplete) {
-        /* Set position to zero at home */
+        /* Set absolute position to zero at home.
+         * TML_lib: use TS_Execute("SAP 0") — the TML direct command that
+         *   resets both target and actual position registers atomically.
+         * Native:  use TS_SetPosition(0) — the native implementation's
+         *   sendSAP() does the same thing under the hood. */
         pC_->tmlLock_.lock();
         selectAxis();
+#ifdef USE_TML_NATIVE
         TS_SetPosition(0);
+#else
+        TS_Execute("SAP 0");
+#endif
         pC_->tmlLock_.unlock();
 
         homingActive_ = false;
@@ -931,7 +1133,8 @@ void TmlControllerConfig(const char *portName, const char *devicePath,
 /** TmlAxisConfig — configure a specific axis with TML parameters */
 void TmlAxisConfig(const char *portName, int axisNo,
                    int axisId, const char *setupFile,
-                   const char *homingSwitch)
+                   const char *homingSwitch,
+                   int ignoreLSP, int ignoreLSN)
 {
     TmlController *pC;
     pC = (TmlController *)findAsynPortDriver(portName);
@@ -939,7 +1142,7 @@ void TmlAxisConfig(const char *portName, int axisNo,
         printf("TmlAxisConfig: port '%s' not found\n", portName);
         return;
     }
-    pC->configAxis(axisNo, axisId, setupFile, homingSwitch);
+    pC->configAxis(axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN);
 }
 
 /* -- TmlControllerConfig arguments -- */
@@ -969,15 +1172,19 @@ static const iocshArg arg1_axis = {"axisNo",       iocshArgInt};
 static const iocshArg arg2_axis = {"axisId",       iocshArgInt};
 static const iocshArg arg3_axis = {"setupFile",    iocshArgString};
 static const iocshArg arg4_axis = {"homingSwitch", iocshArgString};
+static const iocshArg arg5_axis = {"ignoreLSP", iocshArgInt};
+static const iocshArg arg6_axis = {"ignoreLSN", iocshArgInt};
 static const iocshArg *const args_axis[] = {
-    &arg0_axis, &arg1_axis, &arg2_axis, &arg3_axis, &arg4_axis
+    &arg0_axis, &arg1_axis, &arg2_axis, &arg3_axis, &arg4_axis,
+    &arg5_axis, &arg6_axis
 };
-static const iocshFuncDef axisDef = {"TmlAxisConfig", 5, args_axis};
+static const iocshFuncDef axisDef = {"TmlAxisConfig", 7, args_axis};
 
 static void axisCallFunc(const iocshArgBuf *args)
 {
     TmlAxisConfig(args[0].sval, args[1].ival,
-                  args[2].ival, args[3].sval, args[4].sval);
+                  args[2].ival, args[3].sval, args[4].sval,
+                  args[5].ival, args[6].ival);
 }
 
 /* -- Registrar -- */

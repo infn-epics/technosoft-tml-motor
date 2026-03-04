@@ -18,6 +18,7 @@
 #include <asynMotorAxis.h>
 #include <epicsMutex.h>
 #include <epicsEvent.h>
+#include <epicsTime.h>
 
 /* Forward declaration */
 class TmlAxis;
@@ -68,7 +69,8 @@ public:
 
     /* Called from iocsh to configure a single axis after controller creation */
     asynStatus configAxis(int axisNo, int axisId, const char *setupFile,
-                          const char *homingSwitch);
+                          const char *homingSwitch,
+                          int ignoreLSP = 0, int ignoreLSN = 0);
 
     /* Write handler for command parameters (reset fault, save, etc.) */
     asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
@@ -83,11 +85,12 @@ public:
     void report(FILE *fp, int level) override;
 
 protected:
-    int channelFd_;        /* TML channel file descriptor */
+    int channelFd_;        /* TML channel file descriptor (shared by all axes) */
     int hostId_;
     int baudRate_;
     char devicePath_[256];
     epicsMutex tmlLock_;
+    epicsTimeStamp lastReconnect_;   /* rate-limit reconnects */
 
     /* Extra parameter indices */
     int tmlSRH_;
@@ -124,8 +127,11 @@ public:
      * @param axisId        TML axis ID (1-255)
      * @param setupFile     Path to .t.zip or setup directory
      * @param homingSwitch  "LSP" or "LSN"
+     * @param ignoreLSP  If true, do not report HLS (positive limit) to motor record
+     * @param ignoreLSN  If true, do not report LLS (negative limit) to motor record
      */
-    asynStatus configure(int axisId, const char *setupFile, const char *homingSwitch);
+    asynStatus configure(int axisId, const char *setupFile, const char *homingSwitch,
+                         bool ignoreLSP = false, bool ignoreLSN = false);
 
     /* ---- asynMotorAxis interface ---- */
     asynStatus move(double position, int relative, double minVelocity,
@@ -154,9 +160,12 @@ private:
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
     bool useLSP_;              /* true = home on LSP, false = LSN */
+    bool ignoreLSP_;           /* true = do not report HLS (positive limit unconnected) */
+    bool ignoreLSN_;           /* true = do not report LLS (negative limit unconnected) */
     bool needsReinit_;         /* True if init failed, retry in poll */
     int  reinitCountdown_;     /* Poll cycles to wait before next retry */
     int  reinitBackoff_;       /* Current backoff multiplier (doubles each fail) */
+    int  pollCount_;           /* Per-axis poll counter for throttled reads */
 
     char setupFile_[512];
 
@@ -180,7 +189,8 @@ extern "C" {
                              double movingPoll, double idlePoll);
     void TmlAxisConfig(const char *portName, int axisNo,
                        int axisId, const char *setupFile,
-                       const char *homingSwitch);
+                       const char *homingSwitch,
+                       int ignoreLSP, int ignoreLSN);
 }
 
 #endif /* DRV_TML_MOTOR_H */

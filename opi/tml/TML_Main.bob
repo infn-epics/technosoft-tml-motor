@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <width>760</width>
+  <height>700</height>
+  <background_color>
+    <color red="237" green="236" blue="235">
+    </color>
+  </background_color>
+  <actions>
+  </actions>
+  <grid_step_x>5</grid_step_x>
+  <grid_step_y>5</grid_step_y>
+  <widget type="label" version="2.0.0">
+    <name>Title Banner</name>
+    <text>TML - $(DEVICE)</text>
+    <width>766</width>
+    <height>45</height>
+    <font>
+      <font name="EPIK8S-CS" family="sans" style="REGULAR" size="23.762376237623762">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="IO Label" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="EPIK8S Beam Diagnostics" red="207" green="151" blue="207">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+    <border_color>
+      <color name="IO Border" red="215" green="215" blue="215">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="progressbar" version="2.0.0">
+    <name>Progress Bar Template</name>
+    <pv_name>$(DEVICE):POTM_RB</pv_name>
+    <y>647</y>
+    <width>756</width>
+    <height>52</height>
+    <fill_color>
+      <color name="IO PV ON" red="0" green="0" blue="225">
+      </color>
+    </fill_color>
+    <background_color>
+      <color name="IO PV OFF" red="77" green="77" blue="77">
+      </color>
+    </background_color>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <maximum>65535.0</maximum>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>TMLCTL</name>
+    <file>TML_Control.bob</file>
+    <x>6</x>
+    <y>91</y>
+    <width>370</width>
+    <height>542</height>
+    <resize>1</resize>
+    <transparent>true</transparent>
+    <actions>
+    </actions>
+    <border_width>1</border_width>
+    <border_color>
+      <color red="150" green="150" blue="150">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="tabs" version="2.0.0">
+    <name>Tabbed ContainerTemplate</name>
+    <tabs>
+      <tab>
+        <name>Status</name>
+        <children>
+          <widget type="embedded" version="2.0.0">
+            <name>Status Registers</name>
+            <file>TML_StatusRegisters.bob</file>
+            <x>5</x>
+            <y>5</y>
+            <width>291</width>
+            <height>412</height>
+            <transparent>true</transparent>
+            <actions>
+            </actions>
+            <border_color>
+              <color name="IO Border" red="215" green="215" blue="215">
+              </color>
+            </border_color>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>I/O</name>
+        <children>
+          <widget type="embedded" version="2.0.0">
+            <name>Digital Outputs</name>
+            <file>TML_DigitalOutputs.bob</file>
+            <x>5</x>
+            <y>5</y>
+            <width>361</width>
+            <height>101</height>
+            <transparent>true</transparent>
+            <actions>
+            </actions>
+            <border_color>
+              <color name="IO Border" red="215" green="215" blue="215">
+              </color>
+            </border_color>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>Settings</name>
+        <children>
+          <widget type="embedded" version="2.0.0">
+            <name>TML Settings</name>
+            <file>TML_Settings.bob</file>
+            <x>5</x>
+            <y>5</y>
+            <width>372</width>
+            <height>351</height>
+            <resize>2</resize>
+            <transparent>true</transparent>
+            <actions>
+            </actions>
+            <border_color>
+              <color name="IO Border" red="215" green="215" blue="215">
+              </color>
+            </border_color>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>Test</name>
+        <children>
+          <widget type="action_button" version="3.0.0">
+            <name>Action Button Template_7</name>
+            <actions>
+              <action type="write_pv">
+                <description>WritePV</description>
+                <pv_name>$(pv_name)</pv_name>
+                <value>1</value>
+              </action>
+            </actions>
+            <pv_name>$(DEVICE):TMCE</pv_name>
+            <text>Trigger error!</text>
+            <x>5</x>
+            <y>40</y>
+            <width>132</width>
+            <height>28</height>
+            <font>
+              <font family="Sans" style="BOLD" size="10.891089108910892">
+              </font>
+            </font>
+            <foreground_color>
+              <color name="Major" red="255" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color name="IO Grid" red="215" green="215" blue="215">
+              </color>
+            </background_color>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>Label Template</name>
+            <text>CH status:</text>
+            <x>5</x>
+            <y>10</y>
+            <width>57</width>
+            <height>17</height>
+            <font>
+              <font name="IO Label 1" family="sans" style="REGULAR" size="11.881188118811881">
+              </font>
+            </font>
+            <foreground_color>
+              <color name="IO Foreground" red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color name="IO Background" red="255" green="255" blue="205">
+              </color>
+            </background_color>
+            <vertical_alignment>1</vertical_alignment>
+            <auto_size>true</auto_size>
+            <actions>
+            </actions>
+            <border_color>
+              <color name="IO Border" red="215" green="215" blue="215">
+              </color>
+            </border_color>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>Text Update Template</name>
+            <pv_name>$(DEVICE):STAT</pv_name>
+            <x>96</x>
+            <y>6</y>
+            <width>138</width>
+            <height>28</height>
+            <font>
+              <font name="IO Output 1" family="sans" style="BOLD" size="10.891089108910892">
+              </font>
+            </font>
+            <foreground_color>
+              <color name="IO Foreground" red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color name="IO Grid" red="215" green="215" blue="215">
+              </color>
+            </background_color>
+            <horizontal_alignment>1</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+            <wrap_words>false</wrap_words>
+            <actions>
+            </actions>
+            <border_width>1</border_width>
+            <border_color>
+              <color name="IO PV OFF" red="77" green="77" blue="77">
+              </color>
+            </border_color>
+          </widget>
+          <widget type="embedded" version="2.0.0">
+            <name>Linking Container Template</name>
+            <file>TML_DigitalOutputs.bob</file>
+            <x>5</x>
+            <y>95</y>
+            <width>355</width>
+            <height>130</height>
+            <transparent>true</transparent>
+            <actions>
+            </actions>
+            <border_color>
+              <color name="IO Border" red="215" green="215" blue="215">
+              </color>
+            </border_color>
+          </widget>
+        </children>
+      </tab>
+    </tabs>
+    <x>385</x>
+    <y>84</y>
+    <width>371</width>
+    <height>549</height>
+    <background_color>
+      <color name="IO Grid" red="215" green="215" blue="215">
+      </color>
+    </background_color>
+    <tab_height>10</tab_height>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Progress Bar Template Label</name>
+    <pv_name>$(DEVICE):POTM_RB</pv_name>
+    <y>647</y>
+    <width>756</width>
+    <height>52</height>
+    <transparent>true</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+</display>

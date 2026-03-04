@@ -23,12 +23,12 @@ dbLoadTemplate("singleAxis.substitutions")
 #   idlePoll   — polling period (s) while idle
 
 # Option A: direct XPORT connection (recommended for hardware with Ethernet XPORT)
-# TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
+TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
 # socat pty,link=/var/tmp/ttyV0,raw,echo=0,b9600 tcp:192.168.190.55:4001 
 
 # Option B: TCP with native protocol (USE_TML_NATIVE=YES build)
 # make USE_TML_NATIVE=YES 
-TmlControllerConfig("TML1", "192.168.190.55:4001", 1, 15, 9600, 0.1, 1.0)
+# TmlControllerConfig("TML1", "192.168.190.55:4001", 1, 15, 9600, 0.1, 1.0)
 
 # Option C/D: local serial or socat PTY
 #TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
