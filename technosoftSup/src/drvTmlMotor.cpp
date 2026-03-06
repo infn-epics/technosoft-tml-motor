@@ -193,7 +193,8 @@ TmlAxis *TmlController::getTmlAxis(asynUser *pasynUser)
 asynStatus TmlController::configAxis(int axisNo, int axisId,
                                      const char *setupFile,
                                      const char *homingSwitch,
-                                     int ignoreLSP, int ignoreLSN)
+                                     int ignoreLSP, int ignoreLSN,
+                                     int scrValue)
 {
     TmlAxis *pAxis = getTmlAxis(axisNo);
     if (!pAxis) {
@@ -202,7 +203,7 @@ asynStatus TmlController::configAxis(int axisNo, int axisId,
         return asynError;
     }
     return pAxis->configure(axisId, setupFile, homingSwitch,
-                            ignoreLSP != 0, ignoreLSN != 0);
+                            ignoreLSP != 0, ignoreLSN != 0, scrValue);
 }
 
 void TmlController::report(FILE *fp, int level)
@@ -266,9 +267,11 @@ TmlAxis::TmlAxis(TmlController *pC, int axisNo)
     , activated_(false)
     , powered_(false)
     , homingActive_(false)
+    , stopping_(false)
     , useLSP_(false)
     , ignoreLSP_(false)
     , ignoreLSN_(false)
+    , scrValue_(0)
     , needsReinit_(false)
     , reinitCountdown_(0)
     , reinitBackoff_(1)
@@ -295,7 +298,8 @@ TmlAxis::~TmlAxis()
 /* ---- configure ---- */
 asynStatus TmlAxis::configure(int axisId, const char *setupFile,
                                const char *homingSwitch,
-                               bool ignoreLSP, bool ignoreLSN)
+                               bool ignoreLSP, bool ignoreLSN,
+                               int scrValue)
 {
     if (pC_->channelFd_ < 0) {
         asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -306,6 +310,7 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
     axisId_ = axisId;
     ignoreLSP_ = ignoreLSP;
     ignoreLSN_ = ignoreLSN;
+    scrValue_ = scrValue;
     strncpy(setupFile_, setupFile, sizeof(setupFile_) - 1);
 
     if (homingSwitch && (strcmp(homingSwitch, "LSP") == 0 ||
@@ -404,6 +409,23 @@ asynStatus TmlAxis::reinitAxis()
                   "TmlAxis[%d]: reinit TS_DriveInitialisation FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
+    }
+
+    /* Configure encoder input via SCR (Setup Configuration Register).
+     * Without this, APOS stays zero because the drive does not read the
+     * encoder.  The SCR value is drive-specific; 0x4338 enables the
+     * primary encoder with open-loop position feedback.
+     * The SCR address (typically 0x0300) is resolved from the .t.zip
+     * setup file's variable map. */
+    if (scrValue_ != 0) {
+        if (!TS_SetIntVariable("SCR", (short)scrValue_)) {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: SCR write (0x%04X) FAILED: %s\n",
+                      axisNo_, scrValue_, TS_GetLastErrorText());
+            /* Not fatal — encoder readback won't work but motion may still run */
+        } else {
+            DBG(1, "Axis %d: SCR=0x%04X written", axisNo_, scrValue_);
+        }
     }
 
     /* Disable drive-level limit switch protection for unconnected inputs.
@@ -509,6 +531,7 @@ asynStatus TmlAxis::selectAxis()
             pAx->reinitBackoff_   = 1;
             pAx->activated_       = false;
             pAx->powered_         = false;
+            pAx->stopping_        = false;
             pAx->setIntegerParam(pC_->tmlActive_, 0);
             pAx->callParamCallbacks();
             DBG(1, "Axis %d: marked for lazy reinit after channel reconnect", ax);
@@ -530,6 +553,7 @@ asynStatus TmlAxis::selectAxis()
 
         DBG(0, "Axis %d: reinitAxis after reconnect OK (fd=%d)", axisNo_, newFd);
         powered_      = false;  /* power stage is off after reinit */
+        stopping_     = false;
         needsReinit_  = false;
         activated_    = true;
         setIntegerParam(pC_->tmlActive_, 1);
@@ -627,6 +651,7 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
     }
 
     homingActive_ = false;
+    stopping_     = false;
 
     BOOL ok;
     long pos = (long)position;
@@ -684,6 +709,7 @@ asynStatus TmlAxis::moveVelocity(double minVelocity, double maxVelocity,
     }
 
     homingActive_ = false;
+    stopping_     = false;
 
     BOOL ok = TS_MoveVelocity(maxVelocity, acceleration,
                               UPDATE_IMMEDIATE, FROM_REFERENCE);
@@ -786,6 +812,7 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
     DBG(1, "CMD Axis %d: home %s OK — homing started",
         axisNo_, forwards ? "FORWARD(LSP)" : "REVERSE(LSN)");
     homingActive_ = true;
+    stopping_     = false;
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
     setIntegerParam(pC_->motorStatusHomed_, 0);
@@ -803,14 +830,20 @@ asynStatus TmlAxis::stop(double acceleration)
     pC_->tmlLock_.lock();
     selectAxis();
 
-    /* First try to abort any TML subroutine in progress */
+    /* STOP0 (immediate): forces motor voltage to 0.  This is the only
+     * stop mode guaranteed to work in ALL drive configurations including
+     * open-loop (stepper) where the speed loop is not closed.
+     *
+     * Do NOT follow with TS_Stop() (STOP3): STOP3 overrides STOP0 by
+     * switching to speed-profile deceleration, which requires a closed
+     * speed loop.  In open-loop mode STOP3 only stops the reference
+     * generator (TPOS) while the physical motor keeps running. */
     TS_ABORT();
-    /* Then stop the motion */
-    TS_Stop();
 
     pC_->tmlLock_.unlock();
 
     homingActive_ = false;
+    stopping_     = true;  /* hold MOVN=0 until hardware confirms MC */
     setIntegerParam(pC_->motorStatusDone_, 1);
     setIntegerParam(pC_->motorStatusMoving_, 0);
     callParamCallbacks();
@@ -1000,6 +1033,15 @@ asynStatus TmlAxis::poll(bool *moving)
 
     /* Motion complete = SRL bit 10 */
     bool motionComplete = (srl & SRL_BIT_MOTION_COMPLETE) != 0;
+
+    /* If stop() was recently sent, hold motionComplete=true until the drive
+     * firmware actually asserts MC, preventing MOVN from bouncing back. */
+    if (stopping_) {
+        if (motionComplete)
+            stopping_ = false;   /* hardware confirmed; clear flag */
+        else
+            motionComplete = true;  /* override: report stopped */
+    }
     bool axisON         = (srl & SRL_BIT_AXIS_ON) != 0;
     bool gflt           = (srl & SRL_BIT_GFLT) != 0;
     bool aflt           = (srl & SRL_BIT_AFLT) != 0;
@@ -1078,11 +1120,19 @@ asynStatus TmlAxis::poll(bool *moving)
          * TML_lib: use TS_Execute("SAP 0") — the TML direct command that
          *   resets both target and actual position registers atomically.
          * Native:  use TS_SetPosition(0) — the native implementation's
-         *   sendSAP() does the same thing under the hood. */
+         *   sendSAP() does the same thing under the hood.
+         *
+         * Also clear the limit switch event from MER_MASK that was set by
+         * TS_SetEventOnLimitSwitch during home().  Without this, the MER
+         * register latches the limit switch bit — making it appear sticky
+         * even after the physical switch is released (MER_MASK enables
+         * event detection which latches the bit; clearing it restores
+         * live input state). */
         pC_->tmlLock_.lock();
         selectAxis();
 #ifdef USE_TML_NATIVE
         TS_SetPosition(0);
+        TS_ClearLimitSwitchEvent();
 #else
         TS_Execute("SAP 0");
 #endif
@@ -1134,7 +1184,8 @@ void TmlControllerConfig(const char *portName, const char *devicePath,
 void TmlAxisConfig(const char *portName, int axisNo,
                    int axisId, const char *setupFile,
                    const char *homingSwitch,
-                   int ignoreLSP, int ignoreLSN)
+                   int ignoreLSP, int ignoreLSN,
+                   int scrValue)
 {
     TmlController *pC;
     pC = (TmlController *)findAsynPortDriver(portName);
@@ -1142,7 +1193,7 @@ void TmlAxisConfig(const char *portName, int axisNo,
         printf("TmlAxisConfig: port '%s' not found\n", portName);
         return;
     }
-    pC->configAxis(axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN);
+    pC->configAxis(axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN, scrValue);
 }
 
 /* -- TmlControllerConfig arguments -- */
@@ -1174,17 +1225,18 @@ static const iocshArg arg3_axis = {"setupFile",    iocshArgString};
 static const iocshArg arg4_axis = {"homingSwitch", iocshArgString};
 static const iocshArg arg5_axis = {"ignoreLSP", iocshArgInt};
 static const iocshArg arg6_axis = {"ignoreLSN", iocshArgInt};
+static const iocshArg arg7_axis = {"scrValue",  iocshArgInt};
 static const iocshArg *const args_axis[] = {
     &arg0_axis, &arg1_axis, &arg2_axis, &arg3_axis, &arg4_axis,
-    &arg5_axis, &arg6_axis
+    &arg5_axis, &arg6_axis, &arg7_axis
 };
-static const iocshFuncDef axisDef = {"TmlAxisConfig", 7, args_axis};
+static const iocshFuncDef axisDef = {"TmlAxisConfig", 8, args_axis};
 
 static void axisCallFunc(const iocshArgBuf *args)
 {
     TmlAxisConfig(args[0].sval, args[1].ival,
                   args[2].ival, args[3].sval, args[4].sval,
-                  args[5].ival, args[6].ival);
+                  args[5].ival, args[6].ival, args[7].ival);
 }
 
 /* -- Registrar -- */

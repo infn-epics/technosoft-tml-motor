@@ -70,7 +70,8 @@ public:
     /* Called from iocsh to configure a single axis after controller creation */
     asynStatus configAxis(int axisNo, int axisId, const char *setupFile,
                           const char *homingSwitch,
-                          int ignoreLSP = 0, int ignoreLSN = 0);
+                          int ignoreLSP = 0, int ignoreLSN = 0,
+                          int scrValue = 0);
 
     /* Write handler for command parameters (reset fault, save, etc.) */
     asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
@@ -131,7 +132,8 @@ public:
      * @param ignoreLSN  If true, do not report LLS (negative limit) to motor record
      */
     asynStatus configure(int axisId, const char *setupFile, const char *homingSwitch,
-                         bool ignoreLSP = false, bool ignoreLSN = false);
+                         bool ignoreLSP = false, bool ignoreLSN = false,
+                         int scrValue = 0);
 
     /* ---- asynMotorAxis interface ---- */
     asynStatus move(double position, int relative, double minVelocity,
@@ -159,9 +161,11 @@ private:
     bool activated_;           /* True after DriveInitialisation + Power ON */
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
+    bool stopping_;            /* True after stop() until hardware confirms MC */
     bool useLSP_;              /* true = home on LSP, false = LSN */
     bool ignoreLSP_;           /* true = do not report HLS (positive limit unconnected) */
     bool ignoreLSN_;           /* true = do not report LLS (negative limit unconnected) */
+    int  scrValue_;            /* SCR register value to write after init (0 = skip) */
     bool needsReinit_;         /* True if init failed, retry in poll */
     int  reinitCountdown_;     /* Poll cycles to wait before next retry */
     int  reinitBackoff_;       /* Current backoff multiplier (doubles each fail) */
@@ -190,7 +194,8 @@ extern "C" {
     void TmlAxisConfig(const char *portName, int axisNo,
                        int axisId, const char *setupFile,
                        const char *homingSwitch,
-                       int ignoreLSP, int ignoreLSN);
+                       int ignoreLSP, int ignoreLSN,
+                       int scrValue);
 }
 
 #endif /* DRV_TML_MOTOR_H */

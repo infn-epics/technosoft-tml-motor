@@ -18,13 +18,13 @@ technosoft_registerRecordDeviceDriver pdbbase
 ## -------------------------------------------------------
 
 # Single axis example (RS-232, /dev/ttyUSB0):
-#< singleAxis.cmd
+< singleAxis.cmd
 
 # Multi-axis example:
 # < multiAxis.cmd
 
 # SPARC TML channel 1 (10 axes via Moxa NPort @ scsparcmoxa001.lnf.infn.it:4001)
-< tml-ch1.cmd
+#< tml-ch1.cmd
 
 cd "${TOP}/iocBoot/${IOC}"
 var drvTmlDebug 1

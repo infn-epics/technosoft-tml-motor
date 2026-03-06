@@ -23,12 +23,12 @@ dbLoadTemplate("singleAxis.substitutions")
 #   idlePoll   — polling period (s) while idle
 
 # Option A: direct XPORT connection (recommended for hardware with Ethernet XPORT)
-TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
+# TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
 # socat pty,link=/var/tmp/ttyV0,raw,echo=0,b9600 tcp:192.168.190.55:4001 
 
 # Option B: TCP with native protocol (USE_TML_NATIVE=YES build)
 # make USE_TML_NATIVE=YES 
-# TmlControllerConfig("TML1", "192.168.190.55:4001", 1, 15, 9600, 0.1, 1.0)
+TmlControllerConfig("TML1", "192.168.190.55:4001", 1, 15, 9600, 0.1, 1.0)
 
 # Option C/D: local serial or socat PTY
 #TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
@@ -36,12 +36,14 @@ TmlControllerConfig("TML1", "/var/tmp/ttyV0", 1, 15, 9600, 0.1, 1.0)
 
 
 ## Configure axis 0
-#   TmlAxisConfig(portName, axisNo, axisId, setupFile, homingSwitch)
+#   TmlAxisConfig(portName, axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN, scrValue)
 #
 #   portName     — must match the controller's portName
 #   axisNo       — 0-based index into motor record array
 #   axisId       — TML drive address on the bus (1-255)
 #   setupFile    — path to .t.zip or setup directory from EasyMotion/EasySetup
 #   homingSwitch — "LSN" or "LSP" (which limit switch to use for homing)
+#   scrValue     — SCR register value (hex) to enable encoder; 0 = skip
+#                  e.g. 0x4338 for open-loop with encoder feedback
 
-TmlAxisConfig("TML1", 0, 15, "$(TOP)/tml_lib/config/nanotec-st5709s1208.t.zip", "LSN")
+TmlAxisConfig("TML1", 0, 15, "$(TOP)/tml_lib/config/star_vat_phs.t.zip", "LSN",0,0,0x4338)

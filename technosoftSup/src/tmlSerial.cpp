@@ -1800,6 +1800,38 @@ BOOL TS_Reset(void)
     return TRUE;
 }
 
+BOOL TS_ClearLimitSwitchEvent(void)
+{
+    if (!g_activeCh) {
+        setGlobalError("TS_ClearLimitSwitchEvent: no active channel");
+        return FALSE;
+    }
+
+    /* Remove limit switch event bits from MER_MASK so the drive no longer
+     * latches LSP/LSN in MER.  Then clear any already-latched LS bits
+     * in MER itself.  After this, MER bits 6-7 reflect live input state. */
+    WORD merMaskAddr = resolveAddr("MER_MASK", TML_DM_MER_MASK);
+    WORD merMask = 0;
+    g_activeCh->readData16(merMaskAddr, merMask);
+    WORD orig = merMask;
+    merMask &= ~(WORD)((1 << 6) | (1 << 7));
+    if (merMask != orig) {
+        DBG_SER(1, "ClearLimitSwitchEvent: MER_MASK 0x%04X → 0x%04X", orig, merMask);
+        g_activeCh->writeData16(merMaskAddr, merMask);
+    }
+
+    WORD merAddr = resolveAddr("MER", TML_DM_MER);
+    WORD mer = 0;
+    g_activeCh->readData16(merAddr, mer);
+    WORD newMer = mer & ~(WORD)((1 << 6) | (1 << 7));
+    if (newMer != mer) {
+        DBG_SER(1, "ClearLimitSwitchEvent: MER 0x%04X → 0x%04X", mer, newMer);
+        g_activeCh->writeData16(merAddr, newMer);
+    }
+
+    return TRUE;
+}
+
 BOOL TS_DisableLimitProtection(BOOL disableLSP, BOOL disableLSN)
 {
     if (!g_activeCh) {

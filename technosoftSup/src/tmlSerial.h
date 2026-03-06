@@ -500,6 +500,10 @@ BOOL TS_Reset(void);
  */
 BOOL TS_DisableLimitProtection(BOOL disableLSP, BOOL disableLSN);
 
+/* Clear homing limit switch events from MER_MASK and any latched MER bits.
+ * After this call MER bits 6-7 reflect live input state, not latched. */
+BOOL TS_ClearLimitSwitchEvent(void);
+
 #ifdef __cplusplus
 }
 #endif

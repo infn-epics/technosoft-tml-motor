@@ -23,11 +23,13 @@ dbLoadTemplate("tml-ch1.substitutions")
 # TmlControllerConfig("tml-ch1", "/var/tmp/ttyV0", 10, 5, 9600, 0.1, 1.0)
 TmlControllerConfig("tml-ch1", "scsparcmoxa001.lnf.infn.it:4001", 10, 5, 9600, 0.1, 1.0)
 # --- Axis configuration ---
-#   TmlAxisConfig(portName, axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN)
+#   TmlAxisConfig(portName, axisNo, axisId, setupFile, homingSwitch, ignoreLSP, ignoreLSN, scrValue)
 #
 #   ignoreLSP: 1 = suppress HLS (positive limit) when input is not connected
 #   ignoreLSN: 1 = suppress LLS (negative limit) when input is not connected
 #   Set to 0 if the limit switch is actually wired.
+#   scrValue:  SCR register value to enable encoder feedback (e.g. 0x4338).
+#              Set to 0 to skip (use setup file defaults).
 #
 #   NOTE: Replace the .t.zip paths below with the actual setup files
 #         exported from Technosoft EasyMotion/EasySetup for each drive.

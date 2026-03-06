@@ -2,5 +2,5 @@ file "$(TOP)/db/motor.db"
 {
     pattern
     { P,      M,    DESC,            PORT,  ADDR, MRES,  EGU,    DHLM,    DLLM,   VELO, ACCS, TWV }
-    { "TML:", "m1", "TML Axis 0",   "TML1", 0,   1.0,   "ustep", 100000, -100000, 15,   0.5,  100  }
+    { "TEST:MOT:TML:", "TESTFLG", "TML Axis 0",   "TML1", 0,   1.0,   "ustep", 100000, -100000, 15,   0.5,  100  }
 }
