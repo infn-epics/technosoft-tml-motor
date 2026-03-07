@@ -112,6 +112,7 @@ typedef char*       LPSTR;
 
 /* Master ID for unsolicited messages */
 #define TML_DM_MASTERID   0x0916   /* MASTERID register */
+#define TML_DM_SCR        0x0300   /* Setup Configuration Register (16-bit) */
 
 /* ================================================================= */
 /*      TML Online Communication Opcodes                             */

@@ -45,5 +45,5 @@ TmlControllerConfig("TML1", "192.168.190.55:4001", 1, 15, 9600, 0.1, 1.0)
 #   homingSwitch — "LSN" or "LSP" (which limit switch to use for homing)
 #   scrValue     — SCR register value (hex) to enable encoder; 0 = skip
 #                  e.g. 0x4338 for open-loop with encoder feedback
-
-TmlAxisConfig("TML1", 0, 15, "$(TOP)/tml_lib/config/star_vat_phs.t.zip", "LSN",0,0,0x4338)
+# 17208
+TmlAxisConfig("TML1", 0, 15, "$(TOP)/tml_lib/config/star_vat_phs.t.zip", "LSN",0,0,17208)

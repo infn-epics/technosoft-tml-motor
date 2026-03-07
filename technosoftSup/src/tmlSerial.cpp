@@ -114,6 +114,7 @@ void TmlVariableMap::registerDefaults()
     map_["SRL"]   = TML_DM_SRL;
     map_["SRH"]   = TML_DM_SRH;
     map_["MER"]   = TML_DM_MER;
+    map_["SCR"]   = TML_DM_SCR;
 
     map_["SRL_MASK"] = TML_DM_SRL_MASK;
     map_["SRH_MASK"] = TML_DM_SRH_MASK;
@@ -152,6 +153,14 @@ int TmlVariableMap::loadFromZip(const char *zipPath)
      *   UINT    MER     @0x08FC
      *   FIXED   CSPD    @0x02A0
      */
+    /* Verify the file exists before attempting to unzip; missing setup files
+     * are a common misconfiguration and should be flagged clearly. */
+    if (access(zipPath, R_OK) != 0) {
+        DBG_SER(0, "loadFromZip: setup file not found or not readable: '%s' (%s)",
+                zipPath, strerror(errno));
+        return 0;
+    }
+
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "unzip -p '%s' variables.cfg 2>/dev/null", zipPath);
 
@@ -1142,7 +1151,10 @@ int TS_LoadSetup(LPCSTR setupPath)
                 DBG_SER(1, "LoadSetup[%d]: '%s' — loaded %d firmware variable addresses",
                         i, g_setups[i].path, nVars);
             } else {
-                DBG_SER(1, "LoadSetup[%d]: '%s' — no variables.cfg, using defaults",
+                /* Level-0: always visible — missing/empty setup files cause
+                 * 'unknown variable' errors that are hard to diagnose otherwise. */
+                DBG_SER(0, "LoadSetup[%d]: WARNING — '%s' yielded no variable addresses; "
+                        "only built-in defaults will be used (SCR, MER, etc.)",
                         i, g_setups[i].path);
             }
             return i;
