@@ -1,0 +1,3464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-04-19 13:38:15 by psmid-->
+<display version="2.0.0">
+  <name>motor_expert</name>
+  <x>188</x>
+  <y>31</y>
+  <width>1200</width>
+  <height>840</height>
+  <background_color>
+    <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+    </color>
+  </background_color>
+  <grid_visible>false</grid_visible>
+  <grid_step_x>5</grid_step_x>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_3</name>
+    <class>FLAME_BarHeavy</class>
+    <y>15</y>
+    <width>440</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <class>FLAME_Title</class>
+    <text>Drive</text>
+    <x>181</x>
+    <width>85</width>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_4</name>
+    <class>FLAME_BarHeavy</class>
+    <x>3</x>
+    <y>275</y>
+    <width>446</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_5</name>
+    <class>FLAME_BarHeavy</class>
+    <y>368</y>
+    <width>446</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <class>FLAME_Title</class>
+    <text>Dynamics</text>
+    <x>150</x>
+    <y>353</y>
+    <width>140</width>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_7</name>
+    <class>FLAME_BarHeavy</class>
+    <x>729</x>
+    <y>15</y>
+    <width>265</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <class>FLAME_Title</class>
+    <text>Resolution</text>
+    <x>788</x>
+    <width>140</width>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_8</name>
+    <class>FLAME_BarHeavy</class>
+    <x>451</x>
+    <y>15</y>
+    <width>265</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <class>FLAME_Title</class>
+    <text>Status</text>
+    <x>534</x>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #688</name>
+    <text>Controller Error</text>
+    <x>338</x>
+    <y>53</y>
+    <height>22</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="FLAME Warning" red="245" green="200" blue="20">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_calc" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0==7)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).STAT</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>composite #242</name>
+    <x>3</x>
+    <y>52</y>
+    <width>75</width>
+    <height>190</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>text #245</name>
+      <class>FLAME_Label</class>
+      <text>Tweak:</text>
+      <y>140</y>
+      <width>42</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #248</name>
+      <class>FLAME_Label</class>
+      <text>MoveRel:</text>
+      <y>112</y>
+      <width>57</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #251</name>
+      <class>FLAME_Label</class>
+      <text>Low limit:</text>
+      <y>84</y>
+      <width>59</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #254</name>
+      <class>FLAME_Label</class>
+      <text>MoveAbs:</text>
+      <y>56</y>
+      <width>62</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #257</name>
+      <class>FLAME_Label</class>
+      <text>Readback:</text>
+      <y>28</y>
+      <width>63</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #260</name>
+      <class>FLAME_Label</class>
+      <text>High limit:</text>
+      <width>64</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #245_1</name>
+      <class>FLAME_Label</class>
+      <text>Enable:</text>
+      <y>168</y>
+      <width>45</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #263</name>
+    <class>FLAME_Label</class>
+    <text>Raw</text>
+    <x>338</x>
+    <y>31</y>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>text update #266</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(P)$(M).RRBV</pv_name>
+    <x>338</x>
+    <y>80</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #270</name>
+    <pv_name>$(P)$(M)_able.VAL</pv_name>
+    <x>117</x>
+    <y>220</y>
+    <width>209</width>
+    <height>22</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>rectangle #273</name>
+    <x>116</x>
+    <y>107</y>
+    <width>323</width>
+    <height>24</height>
+    <line_color>
+      <color name="FLAME Warning" red="245" green="200" blue="20">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="FLAME Warning" red="245" green="200" blue="20">
+      </color>
+    </background_color>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).LVIO</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #277</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RVAL</pv_name>
+    <x>338</x>
+    <y>108</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #304</name>
+    <text>Comm. Failure</text>
+    <x>338</x>
+    <y>53</y>
+    <height>22</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_calc" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0==9)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).STAT</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #308</name>
+    <pv_name>$(P)$(M).SPMG</pv_name>
+    <x>338</x>
+    <y>136</y>
+    <height>106</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <horizontal>false</horizontal>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #314</name>
+    <text>Moving</text>
+    <x>338</x>
+    <y>53</y>
+    <height>22</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="153" green="255" blue="255">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_calc" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(((pv0==0)&amp;&amp;(pv1==0)))">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).DMOV</pv_name>
+        <pv_name>$(P)$(M).STAT</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #125</name>
+    <text>Moving</text>
+    <x>337</x>
+    <y>54</y>
+    <height>22</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="10" green="0" blue="184">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_calc" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(((pv0==0)&amp;&amp;(pv1==0)))">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).DMOV</pv_name>
+        <pv_name>$(P)$(M).STAT</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #139</name>
+    <text>Limit</text>
+    <x>72</x>
+    <y>149</y>
+    <width>50</width>
+    <height>18</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).LLS</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>message button #161</name>
+    <class>FLAME_ActionButton</class>
+    <pv_name>$(P)$(M).JOGR</pv_name>
+    <x>226</x>
+    <y>164</y>
+    <width>45</width>
+    <height>22</height>
+    <off_label>JogR</off_label>
+    <off_color use_class="true">
+      <color name="FLAME Off Green" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>JogR</on_label>
+    <on_color use_class="true">
+      <color name="FLAME On Green" red="150" green="240" blue="0">
+      </color>
+    </on_color>
+    <show_led>false</show_led>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME ThemeVariationDarker3" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <mode>1</mode>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>message button #164</name>
+    <class>FLAME_ActionButton</class>
+    <pv_name>$(P)$(M).JOGF</pv_name>
+    <x>281</x>
+    <y>164</y>
+    <width>45</width>
+    <height>22</height>
+    <off_label>JogF</off_label>
+    <off_color use_class="true">
+      <color name="FLAME Off Green" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>JogF</on_label>
+    <on_color use_class="true">
+      <color name="FLAME On Green" red="150" green="240" blue="0">
+      </color>
+    </on_color>
+    <show_led>false</show_led>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME ThemeVariationDarker3" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <mode>1</mode>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #167</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RLV</pv_name>
+    <x>117</x>
+    <y>164</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>message button #171</name>
+    <class>FLAME_ActionButton</class>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).HOMF</pv_name>
+        <value>1</value>
+        <description>Write</description>
+      </action>
+    </actions>
+    <pv_name>$(P)$(M).HOMF</pv_name>
+    <text>HomF</text>
+    <x>281</x>
+    <y>192</y>
+    <width>45</width>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>message button #174</name>
+    <class>FLAME_ActionButton</class>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).HOMR</pv_name>
+        <value>1</value>
+        <description>Write</description>
+      </action>
+    </actions>
+    <pv_name>$(P)$(M).HOMR</pv_name>
+    <text>HomR</text>
+    <x>226</x>
+    <y>192</y>
+    <width>45</width>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #177</name>
+    <class>FLAME_Label</class>
+    <text>User</text>
+    <x>117</x>
+    <y>31</y>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #180</name>
+    <class>FLAME_Label</class>
+    <text>Dial</text>
+    <x>226</x>
+    <y>31</y>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #183</name>
+    <text>Limit</text>
+    <x>72</x>
+    <y>68</y>
+    <width>50</width>
+    <height>18</height>
+    <font>
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).HLS</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>text update #187</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(P)$(M).RBV</pv_name>
+    <x>117</x>
+    <y>80</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>text update #191</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(P)$(M).DRBV</pv_name>
+    <x>226</x>
+    <y>80</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #195</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).VAL</pv_name>
+    <x>117</x>
+    <y>108</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #199</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).LLM</pv_name>
+    <x>117</x>
+    <y>136</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #203</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).DHLM</pv_name>
+    <x>226</x>
+    <y>52</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #207</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).HLM</pv_name>
+    <x>117</x>
+    <y>52</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #211</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).DVAL</pv_name>
+    <x>226</x>
+    <y>108</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #215</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).DLLM</pv_name>
+    <x>226</x>
+    <y>136</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="ellipse" version="2.0.0">
+    <name>oval #219</name>
+    <x>87</x>
+    <y>52</y>
+    <width>21</width>
+    <height>21</height>
+    <line_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </background_color>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).HLS</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="ellipse" version="2.0.0">
+    <name>oval #223</name>
+    <x>87</x>
+    <y>133</y>
+    <width>21</width>
+    <height>21</height>
+    <line_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </background_color>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).LLS</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #122</name>
+    <class>FLAME_Label</class>
+    <text>Max. speed:</text>
+    <x>3</x>
+    <y>413</y>
+    <width>74</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #16</name>
+    <class>FLAME_Label</class>
+    <text>Jog</text>
+    <x>338</x>
+    <y>383</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #19</name>
+    <class>FLAME_Label</class>
+    <text>Backlash</text>
+    <x>226</x>
+    <y>383</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #22</name>
+    <class>FLAME_Label</class>
+    <text>Normal</text>
+    <x>114</x>
+    <y>383</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #36</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).VMAX</pv_name>
+    <x>114</x>
+    <y>413</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #40</name>
+    <class>FLAME_Label</class>
+    <text>Speed:</text>
+    <x>3</x>
+    <y>439</y>
+    <width>42</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #43</name>
+    <class>FLAME_Label</class>
+    <text>Base speed:</text>
+    <x>3</x>
+    <y>465</y>
+    <width>73</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #46</name>
+    <class>FLAME_Label</class>
+    <text>Accel.:</text>
+    <x>3</x>
+    <y>491</y>
+    <width>39</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #49</name>
+    <class>FLAME_Label</class>
+    <text>Backlash distance:</text>
+    <x>3</x>
+    <y>516</y>
+    <width>111</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #55</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).BACC</pv_name>
+    <x>226</x>
+    <y>491</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #59</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).ACCL</pv_name>
+    <x>114</x>
+    <y>491</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #63</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).BDST</pv_name>
+    <x>226</x>
+    <y>516</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #67</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).VELO</pv_name>
+    <x>114</x>
+    <y>439</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #71</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).BVEL</pv_name>
+    <x>226</x>
+    <y>439</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #75</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).VBAS</pv_name>
+    <x>114</x>
+    <y>465</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #104</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).JVEL</pv_name>
+    <x>338</x>
+    <y>439</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #108</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).JAR</pv_name>
+    <x>338</x>
+    <y>491</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>text update #604_1</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(P)$(M).STAT</pv_name>
+    <x>451</x>
+    <y>31</y>
+    <width>265</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #671</name>
+    <class>FLAME_Label</class>
+    <text>Pre-move string:</text>
+    <x>729</x>
+    <y>291</y>
+    <width>102</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #674</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).PREM</pv_name>
+    <x>866</x>
+    <y>291</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>6</format>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #678</name>
+    <class>FLAME_Label</class>
+    <text>Post-move string:</text>
+    <x>729</x>
+    <y>317</y>
+    <width>109</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #681</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).POST</pv_name>
+    <x>866</x>
+    <y>317</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>6</format>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #402</name>
+    <class>FLAME_Label</class>
+    <text>Motor resolution:</text>
+    <x>729</x>
+    <y>31</y>
+    <width>108</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #405</name>
+    <class>FLAME_Label</class>
+    <text>Encoder res.:</text>
+    <x>729</x>
+    <y>57</y>
+    <width>79</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #408</name>
+    <class>FLAME_Label</class>
+    <text>Readback res.:</text>
+    <x>729</x>
+    <y>83</y>
+    <width>88</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #411</name>
+    <class>FLAME_Label</class>
+    <text>Retry deadband:</text>
+    <x>729</x>
+    <y>109</y>
+    <width>102</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #414</name>
+    <class>FLAME_Label</class>
+    <text>Retries:</text>
+    <x>729</x>
+    <y>135</y>
+    <width>45</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #417</name>
+    <class>FLAME_Label</class>
+    <text>Use Encoder:</text>
+    <x>729</x>
+    <y>187</y>
+    <width>80</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #420</name>
+    <class>FLAME_Label</class>
+    <text>Readback Delay:</text>
+    <x>729</x>
+    <y>239</y>
+    <width>102</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #423</name>
+    <class>FLAME_Label</class>
+    <text>RBV inLink:</text>
+    <x>729</x>
+    <y>265</y>
+    <width>69</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #426</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).MRES</pv_name>
+    <x>866</x>
+    <y>31</y>
+    <width>105</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #430</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).ERES</pv_name>
+    <x>866</x>
+    <y>57</y>
+    <width>105</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #434</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RDBD</pv_name>
+    <x>866</x>
+    <y>109</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #438</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RTRY</pv_name>
+    <x>866</x>
+    <y>161</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #442</name>
+    <class>FLAME_Label</class>
+    <text>Max. retires:</text>
+    <x>729</x>
+    <y>161</y>
+    <width>75</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>text update #445</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(P)$(M).RCNT</pv_name>
+    <x>866</x>
+    <y>135</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #505</name>
+    <pv_name>$(P)$(M).UEIP</pv_name>
+    <x>866</x>
+    <y>187</y>
+    <width>125</width>
+    <height>25</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #508</name>
+    <pv_name>$(P)$(M).URIP</pv_name>
+    <x>866</x>
+    <y>213</y>
+    <width>125</width>
+    <height>25</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #511</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RRES</pv_name>
+    <x>866</x>
+    <y>83</y>
+    <width>105</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #536</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).DLY</pv_name>
+    <x>866</x>
+    <y>239</y>
+    <width>105</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #540</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).RDBL</pv_name>
+    <x>866</x>
+    <y>265</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>6</format>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #550</name>
+    <class>FLAME_Label</class>
+    <text>Use Readback:</text>
+    <x>729</x>
+    <y>213</y>
+    <width>90</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>composite #556</name>
+    <x>970</x>
+    <y>31</y>
+    <width>23</width>
+    <height>20</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>text #559</name>
+      <text>EGU</text>
+      <x>3</x>
+      <width>22</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #562</name>
+      <text>step</text>
+      <y>10</y>
+      <width>19</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>polyline #565</name>
+      <x>1</x>
+      <y>10</y>
+      <width>22</width>
+      <height>1</height>
+      <points>
+        <point x="0.0" y="0.0">
+        </point>
+        <point x="22.0" y="0.0">
+        </point>
+      </points>
+      <line_width>1</line_width>
+      <line_color>
+        <color red="0" green="0" blue="0">
+        </color>
+      </line_color>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>composite #569</name>
+    <x>970</x>
+    <y>57</y>
+    <width>23</width>
+    <height>20</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>text #572</name>
+      <text>EGU</text>
+      <x>3</x>
+      <width>22</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #575</name>
+      <text>step</text>
+      <y>10</y>
+      <width>19</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>polyline #578</name>
+      <x>1</x>
+      <y>10</y>
+      <width>22</width>
+      <height>1</height>
+      <points>
+        <point x="0.0" y="0.0">
+        </point>
+        <point x="22.0" y="0.0">
+        </point>
+      </points>
+      <line_width>1</line_width>
+      <line_color>
+        <color red="0" green="0" blue="0">
+        </color>
+      </line_color>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>composite #582</name>
+    <x>970</x>
+    <y>83</y>
+    <width>23</width>
+    <height>20</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>text #585</name>
+      <text>EGU</text>
+      <x>3</x>
+      <width>22</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #588</name>
+      <text>step</text>
+      <y>10</y>
+      <width>19</width>
+      <height>12</height>
+      <font>
+        <font family="Liberation Sans" style="REGULAR" size="10.0">
+        </font>
+      </font>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>polyline #591</name>
+      <x>1</x>
+      <y>10</y>
+      <width>22</width>
+      <height>1</height>
+      <points>
+        <point x="0.0" y="0.0">
+        </point>
+        <point x="22.0" y="0.0">
+        </point>
+      </points>
+      <line_width>1</line_width>
+      <line_color>
+        <color red="0" green="0" blue="0">
+        </color>
+      </line_color>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #598</name>
+    <class>FLAME_Label</class>
+    <text>sec</text>
+    <x>971</x>
+    <y>239</y>
+    <width>20</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>message button #151</name>
+    <class>FLAME_ActionButtonSmall</class>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).TWF</pv_name>
+        <value>1</value>
+        <description>Write</description>
+      </action>
+    </actions>
+    <pv_name>$(P)$(M).TWF</pv_name>
+    <text>&gt;</text>
+    <x>199</x>
+    <y>192</y>
+    <width>20</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>message button #154</name>
+    <class>FLAME_ActionButtonSmall</class>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).TWR</pv_name>
+        <value>1</value>
+        <description>Write</description>
+      </action>
+    </actions>
+    <pv_name>$(P)$(M).TWR</pv_name>
+    <text>&lt;</text>
+    <x>117</x>
+    <y>192</y>
+    <width>20</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #157</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).TWV</pv_name>
+    <x>137</x>
+    <y>192</y>
+    <width>60</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>rectangle #721</name>
+    <x>116</x>
+    <y>107</y>
+    <width>212</width>
+    <height>24</height>
+    <line_width>2</line_width>
+    <line_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </line_color>
+    <line_style>1</line_style>
+    <background_color>
+      <color name="FLAME Red" red="250" green="80" blue="50">
+      </color>
+    </background_color>
+    <transparent>true</transparent>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M)_able.VAL</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>rectangle #234</name>
+    <x>116</x>
+    <y>79</y>
+    <width>211</width>
+    <height>24</height>
+    <line_width>2</line_width>
+    <line_color>
+      <color name="FLAME Warning" red="245" green="200" blue="20">
+      </color>
+    </line_color>
+    <background_color>
+      <color red="251" green="243" blue="74">
+      </color>
+    </background_color>
+    <transparent>true</transparent>
+    <rules>
+      <rule name="vis_if_not_zero" prop_id="visible" out_exp="false">
+        <exp bool_exp="!(pv0!=0)">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P)$(M).SET</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #94</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).OFF</pv_name>
+    <x>189</x>
+    <y>321</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>1</format>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>menu #91</name>
+    <class>FLAME_Combobox</class>
+    <pv_name>$(P)$(M).FOFF</pv_name>
+    <x>189</x>
+    <y>295</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>message button #718</name>
+    <class>FLAME_ActionButton</class>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(M).SYNC</pv_name>
+        <value>1</value>
+        <description>Write</description>
+      </action>
+    </actions>
+    <pv_name>$(P)$(M).SYNC</pv_name>
+    <text>SYNC</text>
+    <x>335</x>
+    <y>295</y>
+    <height>22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #79</name>
+    <class>FLAME_Label</class>
+    <text>Cal:</text>
+    <x>9</x>
+    <y>323</y>
+    <width>31</width>
+    <height>18</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #82</name>
+    <class>FLAME_ChoiceButton</class>
+    <pv_name>$(P)$(M).SET</pv_name>
+    <x>40</x>
+    <y>320</y>
+    <height>22</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #85</name>
+    <class>FLAME_Label</class>
+    <text>Off:</text>
+    <x>153</x>
+    <y>323</y>
+    <width>31</width>
+    <height>18</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #98</name>
+    <class>FLAME_Label</class>
+    <text>Dir:</text>
+    <x>304</x>
+    <y>323</y>
+    <width>31</width>
+    <height>18</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #101</name>
+    <pv_name>$(P)$(M).DIR</pv_name>
+    <x>335</x>
+    <y>320</y>
+    <height>22</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <class>FLAME_Title</class>
+    <text>Calibration</text>
+    <x>153</x>
+    <y>260</y>
+    <width>140</width>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #544_1</name>
+    <class>FLAME_Label</class>
+    <text>Torque:</text>
+    <x>454</x>
+    <y>344</y>
+    <width>47</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>choice button #547_1</name>
+    <pv_name>$(P)$(M).CNEN</pv_name>
+    <x>591</x>
+    <y>344</y>
+    <width>125</width>
+    <height>22</height>
+    <foreground_color>
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <selected_color>
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </selected_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #611_1</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).FLNK</pv_name>
+    <x>591</x>
+    <y>370</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>6</format>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #615_1</name>
+    <class>FLAME_Label</class>
+    <text>FWD LNK: </text>
+    <x>454</x>
+    <y>370</y>
+    <width>66</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>Group</name>
+    <x>454</x>
+    <y>58</y>
+    <width>108</width>
+    <height>282</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>text #522_1</name>
+      <class>FLAME_Label</class>
+      <text>Version:</text>
+      <y>208</y>
+      <width>50</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #529_1</name>
+      <class>FLAME_Label</class>
+      <text>Precision:</text>
+      <y>260</y>
+      <width>59</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #449_1</name>
+      <class>FLAME_Label</class>
+      <text>Current direction:</text>
+      <y>26</y>
+      <width>108</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #456_1</name>
+      <class>FLAME_Label</class>
+      <text>Moving:</text>
+      <y>52</y>
+      <width>51</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #467_1</name>
+      <class>FLAME_Label</class>
+      <text>State  0x:</text>
+      <width>57</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #470_1</name>
+      <class>FLAME_Label</class>
+      <text>At Home:</text>
+      <y>78</y>
+      <width>59</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #473_1</name>
+      <class>FLAME_Label</class>
+      <text>Encoder:</text>
+      <y>130</y>
+      <width>54</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #476_1</name>
+      <class>FLAME_Label</class>
+      <text>Motor position:</text>
+      <y>104</y>
+      <width>96</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #479_1</name>
+      <class>FLAME_Label</class>
+      <text>MIP    0x:</text>
+      <y>156</y>
+      <width>57</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #486_1</name>
+      <class>FLAME_Label</class>
+      <text>Err:</text>
+      <y>182</y>
+      <width>20</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>text #515_1</name>
+      <class>FLAME_Label</class>
+      <text>VME Card#:</text>
+      <y>234</y>
+      <width>73</width>
+      <height>19</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+        </color>
+      </background_color>
+      <auto_size>true</auto_size>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>Group</name>
+    <x>591</x>
+    <y>57</y>
+    <width>125</width>
+    <height>282</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="textentry" version="3.0.0">
+      <name>text entry #525_1</name>
+      <class>FLAME_TextEntry</class>
+      <pv_name>$(P)$(M).PREC</pv_name>
+      <y>260</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #532_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).CARD</pv_name>
+      <y>234</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #452_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).TDIR</pv_name>
+      <y>26</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #459_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).MOVN</pv_name>
+      <y>52</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #463_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).MSTA</pv_name>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>4</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #482_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).DIFF</pv_name>
+      <y>182</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #489_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).ATHM</pv_name>
+      <y>78</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #493_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).REP</pv_name>
+      <y>130</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #497_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).RMP</pv_name>
+      <y>104</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #501_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).MIP</pv_name>
+      <y>156</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>4</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>text update #518_1</name>
+      <class>FLAME_TextUpd</class>
+      <pv_name>$(P)$(M).VERS</pv_name>
+      <y>208</y>
+      <width>125</width>
+      <height use_class="true">22</height>
+      <font use_class="true">
+        <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+      <foreground_color use_class="true">
+        <color name="FLAME Text Main" red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color use_class="true">
+        <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <format>1</format>
+      <show_units>false</show_units>
+      <horizontal_alignment use_class="true">1</horizontal_alignment>
+      <vertical_alignment use_class="true">1</vertical_alignment>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+      <border_width use_class="true">1</border_width>
+      <border_color use_class="true">
+        <color name="FLAME Border Dark" red="128" green="128" blue="128">
+        </color>
+      </border_color>
+    </widget>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #32</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).FRAC</pv_name>
+    <x>591</x>
+    <y>396</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #52</name>
+    <class>FLAME_Label</class>
+    <text>Move Fraction:</text>
+    <x>454</x>
+    <y>396</y>
+    <width>92</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #635</name>
+    <class>FLAME_Label</class>
+    <text>Proportional:</text>
+    <x>451</x>
+    <y>456</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #638</name>
+    <class>FLAME_Label</class>
+    <text>Integral:</text>
+    <x>451</x>
+    <y>482</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text #641</name>
+    <class>FLAME_Label</class>
+    <text>Derivative:</text>
+    <x>451</x>
+    <y>508</y>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #652</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).PCOF</pv_name>
+    <x>591</x>
+    <y>456</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #656</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).ICOF</pv_name>
+    <x>591</x>
+    <y>484</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text entry #660</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).DCOF</pv_name>
+    <x>591</x>
+    <y>509</y>
+    <width>125</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_6</name>
+    <class>FLAME_BarHeavy</class>
+    <x>454</x>
+    <y>436</y>
+    <width>265</width>
+    <height use_class="true">3</height>
+    <line_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </line_color>
+    <background_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <class>FLAME_Title</class>
+    <text>Servo</text>
+    <x>540</x>
+    <y>420</y>
+    <height>25</height>
+    <font use_class="true">
+      <font name="FLAME Header" family="Noto Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text_hvel_label</name>
+    <class>FLAME_Label</class>
+    <text>Home speed:</text>
+    <x>3</x>
+    <y>542</y>
+    <width>78</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text_entry_hvel</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).HVEL</pv_name>
+    <x>114</x>
+    <y>542</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>text_hacc_label</name>
+    <class>FLAME_Label</class>
+    <text>Home accel.:</text>
+    <x>3</x>
+    <y>568</y>
+    <width>78</width>
+    <height>19</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <auto_size>true</auto_size>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>text_entry_hacc</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(P)$(M).HACC</pv_name>
+    <x>114</x>
+    <y>568</y>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+</display>

@@ -16,6 +16,7 @@ technosoft_registerRecordDeviceDriver pdbbase
 ## Choose one of the example command files below, or write
 ## your own with TmlControllerConfig + TmlAxisConfig calls.
 ## -------------------------------------------------------
+var drvTmlDebug 1
 
 # Single axis example (RS-232, /dev/ttyUSB0):
 < singleAxis.cmd
@@ -27,7 +28,6 @@ technosoft_registerRecordDeviceDriver pdbbase
 #< tml-ch1.cmd
 
 cd "${TOP}/iocBoot/${IOC}"
-var drvTmlDebug 1
 
 iocInit
 

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-01-26 10:21:28 by developer-->
+<display version="2.0.0">
+  <name>FLAME_sp_string</name>
+  <width>400</width>
+  <height>30</height>
+  <background_color>
+    <color name="FLAME ThemeVariationLigher1" red="225" green="225" blue="225">
+    </color>
+  </background_color>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>FLAME_Label</class>
+    <text>$(DESC)</text>
+    <x>10</x>
+    <width>180</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <class>FLAME_TextEntry</class>
+    <pv_name>$(PV)</pv_name>
+    <x>200</x>
+    <y>4</y>
+    <width>190</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundSetpoint" red="250" green="250" blue="250">
+      </color>
+    </background_color>
+    <format>6</format>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+</display>

@@ -27,8 +27,12 @@
 #include <cstring>
 #include <cmath>
 #include <cerrno>
+#include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <stdint.h>
+#include <zlib.h>
 #include <termios.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -142,61 +146,261 @@ void TmlVariableMap::merge(const TmlVariableMap &other)
     }
 }
 
+/* ================================================================= */
+/*          Minimal ZIP reader — no external tools, zlib only        */
+/*                                                                   */
+/* Supports STORED (method 0) and DEFLATE (method 8) entries.        */
+/* ================================================================= */
+
+static uint16_t zipLE16(const uint8_t *p)
+{
+    return (uint16_t)(p[0] | ((uint16_t)p[1] << 8));
+}
+
+static uint32_t zipLE32(const uint8_t *p)
+{
+    return (uint32_t)(p[0] | ((uint32_t)p[1] << 8)
+                    | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24));
+}
+
+/*
+ * Extract a named entry from a ZIP file.
+ * Returns a malloc'd, NUL-terminated buffer with the uncompressed contents,
+ * or NULL on failure.  The caller must free() the returned buffer.
+ * *outSize (if non-NULL) is set to the uncompressed byte count.
+ */
+static char *zipExtractFile(const char *zipPath, const char *entryName,
+                            size_t *outSize)
+{
+    FILE *zf = fopen(zipPath, "rb");
+    if (!zf) {
+        DBG_SER(0, "zipExtractFile: cannot open '%s': %s", zipPath, strerror(errno));
+        return NULL;
+    }
+
+    /* --- Locate the End of Central Directory (EOCD) record ---
+     * Search backward from EOF; allow up to 65535-byte ZIP comment. */
+    if (fseek(zf, 0, SEEK_END) != 0) { fclose(zf); return NULL; }
+    long fileSize  = ftell(zf);
+    long searchEnd = fileSize - (22L + 65535L);
+    if (searchEnd < 0) searchEnd = 0;
+    long eocdOff = -1;
+    for (long off = fileSize - 22L; off >= searchEnd; off--) {
+        uint8_t sig[4];
+        fseek(zf, off, SEEK_SET);
+        if (fread(sig, 1, 4, zf) != 4) continue;
+        if (sig[0]==0x50 && sig[1]==0x4B && sig[2]==0x05 && sig[3]==0x06) {
+            eocdOff = off;
+            break;
+        }
+    }
+    if (eocdOff < 0) {
+        DBG_SER(0, "zipExtractFile: EOCD signature not found in '%s'", zipPath);
+        fclose(zf); return NULL;
+    }
+
+    uint8_t eocd[22];
+    fseek(zf, eocdOff, SEEK_SET);
+    if (fread(eocd, 1, 22, zf) != 22) { fclose(zf); return NULL; }
+    uint16_t cdCount  = zipLE16(eocd + 10);
+    uint32_t cdSize   = zipLE32(eocd + 12);
+    uint32_t cdOffset = zipLE32(eocd + 16);
+
+    DBG_SER(2, "zipExtractFile: '%s' — %u entries, CD @ 0x%X size=%u",
+            zipPath, cdCount, cdOffset, cdSize);
+
+    /* --- Scan Central Directory for the requested entry --- */
+    fseek(zf, cdOffset, SEEK_SET);
+    size_t   nameLen   = strlen(entryName);
+    uint16_t method    = 0;
+    uint32_t compSize  = 0, uncompSize = 0, localOff = 0;
+    bool     found     = false;
+
+    for (uint16_t i = 0; i < cdCount && !found; i++) {
+        uint8_t hdr[46];
+        if (fread(hdr, 1, 46, zf) != 46) break;
+        if (!(hdr[0]==0x50 && hdr[1]==0x4B && hdr[2]==0x01 && hdr[3]==0x02)) break;
+
+        uint16_t fnLen  = zipLE16(hdr + 28);
+        uint16_t exLen  = zipLE16(hdr + 30);
+        uint16_t cmtLen = zipLE16(hdr + 32);
+
+        char fname[512] = {0};
+        uint16_t readLen = (fnLen < (uint16_t)(sizeof(fname)-1))
+                           ? fnLen : (uint16_t)(sizeof(fname)-1);
+        if (fread(fname, 1, readLen, zf) != readLen) break;
+        /* skip any remaining file name bytes + extra + comment */
+        fseek(zf, (fnLen - readLen) + exLen + cmtLen, SEEK_CUR);
+
+        DBG_SER(2, "  entry[%u]: '%-32s' method=%u csz=%u usz=%u",
+                i, fname, zipLE16(hdr+10), zipLE32(hdr+20), zipLE32(hdr+24));
+
+        if (fnLen == (uint16_t)nameLen && strncmp(fname, entryName, nameLen) == 0) {
+            method     = zipLE16(hdr + 10);
+            compSize   = zipLE32(hdr + 20);
+            uncompSize = zipLE32(hdr + 24);
+            localOff   = zipLE32(hdr + 42);
+            found      = true;
+        }
+    }
+
+    if (!found) {
+        DBG_SER(0, "zipExtractFile: entry '%s' not found in '%s'", entryName, zipPath);
+        fclose(zf); return NULL;
+    }
+
+    /* --- Skip the Local File Header to reach compressed data --- */
+    uint8_t lfh[30];
+    fseek(zf, localOff, SEEK_SET);
+    if (fread(lfh, 1, 30, zf) != 30 ||
+        !(lfh[0]==0x50 && lfh[1]==0x4B && lfh[2]==0x03 && lfh[3]==0x04)) {
+        DBG_SER(0, "zipExtractFile: bad local file header in '%s'", zipPath);
+        fclose(zf); return NULL;
+    }
+    fseek(zf, zipLE16(lfh+26) + zipLE16(lfh+28), SEEK_CUR);
+
+    /* --- Read compressed data --- */
+    uint8_t *compBuf = (uint8_t *)malloc(compSize ? compSize : 1);
+    if (!compBuf) { fclose(zf); return NULL; }
+    if (compSize && fread(compBuf, 1, compSize, zf) != compSize) {
+        free(compBuf); fclose(zf); return NULL;
+    }
+    fclose(zf);
+
+    /* --- Decompress or copy --- */
+    char *outBuf = (char *)malloc(uncompSize + 1);
+    if (!outBuf) { free(compBuf); return NULL; }
+
+    if (method == 0) {
+        /* STORED — no compression */
+        memcpy(outBuf, compBuf, uncompSize);
+    } else if (method == 8) {
+        /* DEFLATE — raw inflate (negative windowBits bypasses zlib header) */
+        z_stream strm;
+        memset(&strm, 0, sizeof(strm));
+        strm.next_in   = compBuf;
+        strm.avail_in  = compSize;
+        strm.next_out  = (Bytef *)outBuf;
+        strm.avail_out = uncompSize;
+        if (inflateInit2(&strm, -MAX_WBITS) != Z_OK) {
+            free(compBuf); free(outBuf); return NULL;
+        }
+        int ret = inflate(&strm, Z_FINISH);
+        inflateEnd(&strm);
+        if (ret != Z_STREAM_END) {
+            DBG_SER(0, "zipExtractFile: inflate failed (ret=%d) for '%s'", ret, entryName);
+            free(compBuf); free(outBuf); return NULL;
+        }
+    } else {
+        DBG_SER(0, "zipExtractFile: unsupported compression method %u for '%s'",
+                method, entryName);
+        free(compBuf); free(outBuf); return NULL;
+    }
+
+    free(compBuf);
+    outBuf[uncompSize] = '\0';   /* NUL-terminate for line parsing */
+    if (outSize) *outSize = uncompSize;
+    return outBuf;
+}
+
 int TmlVariableMap::loadFromZip(const char *zipPath)
 {
     /*
-     * Extract 'variables.cfg' from the .t.zip file using unzip -p
-     * (pipe to stdout).  Each line has the format:
+     * Extract 'variables.cfg' from the .t.zip file using the built-in
+     * ZIP reader (zlib inflate) — no external 'unzip' tool needed.
+     * Each line of variables.cfg has the format:
      *   TYPE  NAME  @0xADDR [optional flags]
      * e.g.
      *   LONG    TPOS    @0x02B2
      *   UINT    MER     @0x08FC
      *   FIXED   CSPD    @0x02A0
      */
-    /* Verify the file exists before attempting to unzip; missing setup files
-     * are a common misconfiguration and should be flagged clearly. */
     if (access(zipPath, R_OK) != 0) {
         DBG_SER(0, "loadFromZip: setup file not found or not readable: '%s' (%s)",
                 zipPath, strerror(errno));
         return 0;
     }
 
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd), "unzip -p '%s' variables.cfg 2>/dev/null", zipPath);
+    if (drvTmlDebug >= 1) {
+        struct stat st;
+        if (stat(zipPath, &st) == 0)
+            DBG_SER(1, "loadFromZip: zip file '%s' size=%ld bytes", zipPath, (long)st.st_size);
+    }
 
-    FILE *fp = popen(cmd, "r");
-    if (!fp) {
-        DBG_SER(0, "loadFromZip: popen failed for '%s'", zipPath);
+    size_t cfgSize = 0;
+    char *cfgBuf = zipExtractFile(zipPath, "variables.cfg", &cfgSize);
+    if (!cfgBuf) {
+        DBG_SER(0, "loadFromZip: failed to extract variables.cfg from '%s'", zipPath);
         return 0;
     }
 
     int count = 0;
-    char line[512];
-    while (fgets(line, sizeof(line), fp)) {
+    char *saveptr = NULL;
+    char *line = strtok_r(cfgBuf, "\n", &saveptr);
+    while (line) {
+        /* Strip trailing \r */
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\r') line[--len] = '\0';
+
         /* Skip comments and empty lines */
-        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+        if (line[0] == '#' || line[0] == '\0') {
+            line = strtok_r(NULL, "\n", &saveptr);
             continue;
+        }
 
         /* Parse: TYPE  NAME  @0xADDR */
         char type[32] = {0}, name[64] = {0}, addrStr[32] = {0};
-        if (sscanf(line, "%31s %63s %31s", type, name, addrStr) < 3)
+        if (sscanf(line, "%31s %63s %31s", type, name, addrStr) < 3) {
+            line = strtok_r(NULL, "\n", &saveptr);
             continue;
+        }
 
-        /* addrStr should start with '@0x' */
+        /* addrStr must start with '@0x' */
         if (addrStr[0] != '@' || addrStr[1] != '0' ||
-            (addrStr[2] != 'x' && addrStr[2] != 'X'))
+            (addrStr[2] != 'x' && addrStr[2] != 'X')) {
+            line = strtok_r(NULL, "\n", &saveptr);
             continue;
+        }
 
         unsigned int addr = 0;
-        if (sscanf(addrStr + 1, "%x", &addr) != 1)
+        if (sscanf(addrStr + 1, "%x", &addr) != 1) {
+            line = strtok_r(NULL, "\n", &saveptr);
             continue;
+        }
 
         map_[name] = (WORD)addr;
         count++;
+        line = strtok_r(NULL, "\n", &saveptr);
     }
 
-    pclose(fp);
+    free(cfgBuf);
     DBG_SER(1, "loadFromZip: loaded %d variable addresses from '%s'", count, zipPath);
+
+    if (drvTmlDebug >= 1 && count > 0) {
+        /* Print addresses of the key drive variables that the driver uses.
+         * Shows only the names that were actually present in the zip. */
+        static const char *keyVars[] = {
+            "APOS", "TPOS", "CPOS", "CSPD", "CACC",
+            "MCR",  "MSR",  "ISR",  "SRL",  "SRH",  "MER",  "SCR",
+            "SRL_MASK", "SRH_MASK", "MER_MASK", "MASTERID",
+            NULL
+        };
+        printf("tmlSerial [loadFromZip] key variables from '%s':\n", zipPath);
+        for (int i = 0; keyVars[i] != NULL; i++) {
+            auto it = map_.find(keyVars[i]);
+            if (it != map_.end())
+                printf("  %-16s  @0x%04X\n", it->first.c_str(), (unsigned)it->second);
+        }
+    }
+
+    if (drvTmlDebug >= 2 && count > 0) {
+        /* Full dump: every variable loaded from the zip */
+        printf("tmlSerial [loadFromZip] full variable map (%d entries) from '%s':\n",
+               count, zipPath);
+        for (auto &kv : map_)
+            printf("  %-24s  @0x%04X\n", kv.first.c_str(), (unsigned)kv.second);
+    }
+
     return count;
 }
 
@@ -691,17 +895,30 @@ bool TmlChannel::waitAck(int timeoutMs)
      * the ACK byte arrives or the timeout expires.  This is safe because
      * after a command the only valid single-byte response from the drive
      * is 0x4F.  Any other byte is junk/stale data.
+     *
+     * NOTE: elapsed time is tracked via wall clock, NOT by counting
+     * readBytes() calls.  If a continuous stream of non-ACK bytes
+     * arrives (e.g. XPORT init traffic), a call-count approach would
+     * never reach the timeout and loop forever.
      */
     uint8_t byte;
-    int elapsed = 0;
     const int stepMs = 2;  /* small read timeout per attempt */
     int junkCount = 0;
-    while (elapsed < timeoutMs) {
+
+    struct timeval tStart, tNow;
+    gettimeofday(&tStart, nullptr);
+
+    while (true) {
+        gettimeofday(&tNow, nullptr);
+        long elapsedMs = (tNow.tv_sec  - tStart.tv_sec)  * 1000
+                       + (tNow.tv_usec - tStart.tv_usec) / 1000;
+        if (elapsedMs >= timeoutMs)
+            break;
+
         int n = readBytes(&byte, 1, stepMs);
-        if (n != 1) {
-            elapsed += stepMs;
+        if (n != 1)
             continue;
-        }
+
         if (byte == TML_ACK_BYTE) {
             if (junkCount > 0)
                 DBG_SER(1, "ACK received after skipping %d unexpected bytes", junkCount);
@@ -803,18 +1020,29 @@ bool TmlChannel::receiveMessage(TmlMsg &msg, int timeoutMs)
     /* First read the length byte, skipping any padding/junk bytes.
      * On RS-232 via socat/Moxa, null bytes (0x00), CR (0x0D) and
      * LF (0x0A) can appear between frames.  Valid TML payload lengths
-     * are 4..12, so any byte outside that range is junk. */
+     * are 4..12, so any byte outside that range is junk.
+     *
+     * NOTE: elapsed time is tracked via wall clock so that a stream of
+     * continuous junk bytes does not prevent the timeout from firing. */
     uint8_t lenByte;
-    int elapsed = 0;
     const int stepMs = 2;
     bool gotLen = false;
     int skipped = 0;
-    while (elapsed < timeoutMs) {
+
+    struct timeval tStart, tNow;
+    gettimeofday(&tStart, nullptr);
+
+    while (true) {
+        gettimeofday(&tNow, nullptr);
+        long elapsedMs = (tNow.tv_sec  - tStart.tv_sec)  * 1000
+                       + (tNow.tv_usec - tStart.tv_usec) / 1000;
+        if (elapsedMs >= timeoutMs)
+            break;
+
         int n = readBytes(&lenByte, 1, stepMs);
-        if (n != 1) {
-            elapsed += stepMs;
+        if (n != 1)
             continue;
-        }
+
         if (lenByte >= 4 && lenByte <= 12) {
             gotLen = true;
             break;

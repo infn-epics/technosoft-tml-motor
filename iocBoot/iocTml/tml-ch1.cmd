@@ -4,14 +4,6 @@
 # Moxa NPort 5250A at scsparcmoxa001.lnf.infn.it (192.168.190.55)
 # RS-232 serial port 1  →  TCP port 4001
 #
-# Both build modes use socat to bridge the Moxa TCP port to a local PTY.
-# Start socat BEFORE the IOC:
-#   socat pty,link=/var/tmp/ttyV0,raw,echo=0,b9600 tcp:scsparcmoxa001.lnf.infn.it:4001 &
-#
-# Build modes:
-#   make                   →  links with TML_lib (TS_SetupAxis downloads setup data)
-#   make USE_TML_NATIVE=YES →  native serial protocol (no TML_lib binary needed)
-#
 
 # --- Load motor record database ---
 dbLoadTemplate("tml-ch1.substitutions")

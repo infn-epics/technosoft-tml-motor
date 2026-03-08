@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-01-26 10:24:56 by developer-->
+<display version="2.0.0">
+  <name>FLAME_start_stop</name>
+  <width>400</width>
+  <height>30</height>
+  <background_color>
+    <color name="FLAME ThemeVariationLigher1" red="225" green="225" blue="225">
+    </color>
+  </background_color>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>FLAME_Label</class>
+    <text>$(DESC)</text>
+    <x>10</x>
+    <width>180</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Start Button_2</name>
+    <class>FLAME_ActionButtonSmall</class>
+    <actions execute_as_one="true">
+      <action type="write_pv">
+        <pv_name>$(DEVICE):$(CAM):Acquire</pv_name>
+        <value>0</value>
+        <description>WritePV</description>
+      </action>
+      <action type="write_pv">
+        <pv_name>$(DEVICE):$(CAM):ArrayCallbacks</pv_name>
+        <value>0</value>
+        <description>WritePV</description>
+      </action>
+    </actions>
+    <text>STOP</text>
+    <x>300</x>
+    <y>4</y>
+    <width>90</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <tooltip></tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Start Button_3</name>
+    <class>FLAME_ActionButtonSmall</class>
+    <actions execute_as_one="true">
+      <action type="write_pv">
+        <pv_name>$(DEVICE):$(CAM):Acquire</pv_name>
+        <value>1</value>
+        <description>WritePV</description>
+      </action>
+    </actions>
+    <text>START</text>
+    <x>200</x>
+    <y>4</y>
+    <width>90</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundButton" red="200" green="200" blue="200">
+      </color>
+    </background_color>
+    <tooltip></tooltip>
+  </widget>
+</display>

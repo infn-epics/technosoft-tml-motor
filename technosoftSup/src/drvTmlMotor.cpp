@@ -9,7 +9,7 @@
  *   TmlController  — one per RS-232/485/CAN/XPORT channel.
  *                    Owns the single TML channel fd shared by all axes.
  *   TmlAxis        — one per physical drive on the channel.
- *                    Each axis maintains its own TML_lib setup.
+ *                    Each axis maintains its own TML serial setup.
  *
  * Recovery strategy: when the shared channel breaks, selectAxis()
  * reconnects it and reinits only the requesting axis.  Other axes
@@ -19,9 +19,6 @@
  *
  * The TML communication layer is NOT thread-safe; every call is
  * serialized through tmlLock_ (an epicsMutex in the controller).
- *
- * Compile with  -DUSE_TML_NATIVE  to use the native serial protocol
- * implementation instead of the proprietary TML_lib binary library.
  *
  * Author:  Andrea Michelotti — INFN-LNF
  * Date:    2026-02
@@ -38,11 +35,7 @@
 #include <iocsh.h>
 #include <asynOctetSyncIO.h>
 
-#ifdef USE_TML_NATIVE
-#  include "tmlSerial.h"
-#else
-#  include <TML_lib.h>
-#endif
+#include "tmlSerial.h"
 #include "drvTmlMotor.h"
 
 /* Global debug level — settable from iocsh via "var drvTmlDebug N" */
@@ -63,20 +56,11 @@ static int tmlChannelType(const char *path)
     return (strchr(path, '/') == nullptr) ? CHANNEL_XPORT_IP : CHANNEL_RS232;
 }
 
-/* For XPORT_IP TML_lib wants just hostname/IP (strip ":port" suffix).
- * Native mode passes the full "host:port" so connectTcp() can parse it.
- */
+/* Pass the full "host:port" string so connectTcp() can parse it. */
 static void tmlDevName(const char *path, char *buf, size_t buflen)
 {
     strncpy(buf, path, buflen - 1);
     buf[buflen - 1] = '\0';
-#ifndef USE_TML_NATIVE
-    /* TML_lib CHANNEL_XPORT_IP expects bare IP, port is implicit */
-    if (tmlChannelType(path) == CHANNEL_XPORT_IP) {
-        char *colon = strchr(buf, ':');
-        if (colon) *colon = '\0';
-    }
-#endif
 }
 
 /* SRL register bits (Technosoft TML Status Register Low) */
@@ -1130,12 +1114,8 @@ asynStatus TmlAxis::poll(bool *moving)
          * live input state). */
         pC_->tmlLock_.lock();
         selectAxis();
-#ifdef USE_TML_NATIVE
         TS_SetPosition(0);
         TS_ClearLimitSwitchEvent();
-#else
-        TS_Execute("SAP 0");
-#endif
         pC_->tmlLock_.unlock();
 
         homingActive_ = false;

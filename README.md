@@ -1,8 +1,8 @@
 # technosoft-asyn — Technosoft TML Motor Driver (Pure Asyn)
 
 EPICS asynMotorController / asynMotorAxis driver for **Technosoft**
-intelligent servo and stepper drives, using the vendor's TML_lib
-high-level C library.
+intelligent servo and stepper drives, using a built-in native serial
+TML protocol implementation (no vendor binary libraries required).
 
 This is a complete rewrite of the original NDS-based `motorTechnosoft`
 driver, replacing the NDS/Cosylab layer with the standard EPICS motor
@@ -11,8 +11,8 @@ record + asyn model-3 architecture.
 ## Features
 
 - Standard EPICS `motor` record support through `asynMotorController`/`asynMotorAxis`
-- Direct use of TML_lib API (`TS_OpenChannel`, `TS_MoveAbsolute`, `TS_ReadStatus`, etc.)
-- Thread-safe access to the non-reentrant TML library via `epicsMutex`
+- Built-in native TML serial protocol — no proprietary shared libraries needed
+- Thread-safe communication via `epicsMutex`
 - Absolute and relative positioning via motor record
 - Velocity (jog) mode
 - Homing to positive or negative limit switch
@@ -20,8 +20,9 @@ record + asyn model-3 architecture.
 - Automatic power-on before motion, with SRL.15 readback
 - Full status mapping: motion-complete, limits, faults, power state
 - Extra PVs for raw TML registers (SRH, SRL, MER)
-- Multi-axis support on RS-232, RS-485, CAN, and XPORT (IP) channels
+- Multi-axis support on RS-232, RS-485, and TCP (Moxa NPort, Digi XPORT, ser2net)
 - Configurable per-axis TML setup files (.t.zip from EasyMotion/EasySetup)
+- Built-in ZIP reader for setup files (zlib only, no `unzip` tool needed)
 - Debug tracing via `var drvTmlDebug N` (0–4)
 
 ## Prerequisites
@@ -29,7 +30,7 @@ record + asyn model-3 architecture.
 - EPICS Base 7.x
 - Motor module (synApps motor)
 - Asyn module
-- TML_lib + tmlcomm shared libraries (from Technosoft or built from vendor SDK)
+- zlib development headers (`zlib1g-dev` on Debian/Ubuntu)
 
 ## Directory Structure
 
@@ -41,36 +42,26 @@ technosoft-asyn/
 │   ├── CONFIG
 │   ├── CONFIG_SITE
 │   ├── Makefile
-│   ├── RELEASE          ← set EPICS_BASE, ASYN, MOTOR, TML_LIB here
+│   ├── RELEASE          ← set EPICS_BASE, ASYN, MOTOR here
 │   ├── RULES
 │   ├── RULES_DIRS
 │   ├── RULES_TOP
 │   └── RULES.ioc
-├── technosoftApp/
-│   ├── Makefile
-│   ├── Db/
-│   │   ├── Makefile
-│   │   └── motor.db     ← motor record + extra TML status PVs
+├── technosoftSup/
 │   └── src/
-│       ├── Makefile
-│       ├── devTechnosoft.dbd
-│       ├── drvTmlMotor.h
-│       ├── drvTmlMotor.cpp
+│       ├── drvTmlMotor.h    ← public driver header
+│       ├── drvTmlMotor.cpp  ← asynMotorController/Axis implementation
+│       ├── tmlSerial.h      ← native TML protocol header
+│       └── tmlSerial.cpp    ← native TML protocol implementation
+├── technosoftApp/
+│   └── src/
 │       └── technosoftMain.cpp
-├── tml_lib/              ← symlink or copy from motorTechnosoft/tml_lib
-│   ├── config/           ← .t.zip setup files
-│   ├── include/
-│   │   ├── TML_lib.h
-│   │   └── tmlcomm.h
-│   └── lib/
-│       ├── libTML_lib.so
-│       └── libtmlcomm.so
+├── tml_lib/
+│   └── config/           ← .t.zip setup files (EasyMotion/EasySetup exports)
 └── iocBoot/
-    ├── Makefile
     └── iocTml/
-        ├── Makefile
         ├── st.cmd                    ← main startup script
-        ├── singleAxis.cmd            ← single-axis RS-232 example
+        ├── singleAxis.cmd            ← single-axis example
         ├── singleAxis.substitutions
         ├── multiAxis.cmd             ← multi-axis RS-485/CAN example
         └── multiAxis.substitutions
@@ -78,23 +69,15 @@ technosoft-asyn/
 
 ## Building
 
-1. Copy or symlink the `tml_lib/` directory from the `motorTechnosoft` tree
-   (or from the Technosoft SDK):
-
-   ```bash
-   ln -s ../motorTechnosoft/tml_lib .
-   ```
-
-2. Edit `configure/RELEASE` to match your EPICS installation:
+1. Edit `configure/RELEASE` to match your EPICS installation:
 
    ```makefile
    EPICS_BASE = /epics/epics-base
    ASYN       = /epics/support/asyn
    MOTOR      = /epics/support/motor
-   TML_LIB    = $(TOP)/tml_lib
    ```
 
-3. Build:
+2. Build:
 
    ```bash
    make

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-01-26 10:26:56 by developer-->
+<display version="2.0.0">
+  <name>FLAME_neutral-ok</name>
+  <width>400</width>
+  <height>30</height>
+  <background_color>
+    <color name="FLAME ThemeVariationLigher1" red="225" green="225" blue="225">
+    </color>
+  </background_color>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <class>FLAME_TextUpd</class>
+    <pv_name>$(PV)</pv_name>
+    <x>300</x>
+    <y>4</y>
+    <width>90</width>
+    <height use_class="true">22</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundReadback" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <horizontal_alignment use_class="true">1</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <border_width use_class="true">1</border_width>
+    <border_color use_class="true">
+      <color name="FLAME Border Dark" red="128" green="128" blue="128">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>FLAME_Label</class>
+    <text>$(DESC)</text>
+    <x>10</x>
+    <width>250</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="FLAME Label" family="Noto Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="FLAME Text Main" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color use_class="true">
+      <color name="FLAME BackgroundDisplay" red="225" green="225" blue="225">
+      </color>
+    </background_color>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <class>FLAME_LEDNeutralOrOk</class>
+    <pv_name>$(PV)</pv_name>
+    <x>270</x>
+    <y>5</y>
+    <width use_class="true">20</width>
+    <height use_class="true">20</height>
+    <off_color use_class="true">
+      <color name="FLAME Off Grey" red="175" green="175" blue="175">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="FLAME On Green" red="150" green="240" blue="0">
+      </color>
+    </on_color>
+  </widget>
+</display>
