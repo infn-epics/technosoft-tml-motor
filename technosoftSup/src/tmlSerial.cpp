@@ -1803,6 +1803,16 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
         if (!g_activeCh->sendMcrConfig(0xFFFF, MCR_BIT_REF_BASE)) goto fail;
     }
 
+    /* Pre-UPD diagnostic: capture MER + MER_MASK state right before UPD */
+    {
+        WORD merPre = 0, merMaskPre = 0, lsDis = 0;
+        g_activeCh->readData16(resolveAddr("MER", TML_DM_MER), merPre);
+        g_activeCh->readData16(resolveAddr("MER_MASK", TML_DM_MER_MASK), merMaskPre);
+        g_activeCh->readData16(TML_DM_LS_DISABLE, lsDis);
+        DBG_SER(1, "MoveAbsolute PRE-UPD: MER=0x%04X MER_MASK=0x%04X LS_DISABLE=0x%04X",
+                merPre, merMaskPre, lsDis);
+    }
+
     /* 6. Update */
     if (MoveMoment == UPDATE_IMMEDIATE) {
         if (!g_activeCh->sendCommand(TML_OP_UPD_IMM)) goto fail;
@@ -1818,8 +1828,15 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
         bool mc = (srl & (1 << 10)) != 0;  /* motion complete */
         DBG_SER(1, "MoveAbsolute POST-UPD: SRL=0x%04X MER=0x%04X motionComplete=%d",
                 srl, mer, mc);
-        if (mc && mer != 0)
-            DBG_SER(0, "WARNING: motion blocked — MER=0x%04X (limit switches active?)", mer);
+        if (mc && mer != 0) {
+            DBG_SER(0, "WARNING: motion blocked — MER=0x%04X%s%s",
+                    mer,
+                    (mer & (1 << 6)) ? " LSP(+)active" : "",
+                    (mer & (1 << 7)) ? " LSN(-)active" : "");
+            DBG_SER(0, "  If motor is NOT at a physical limit, the LS input "
+                    "polarity may be inverted (check NC/NO switch type "
+                    "or EasyMotion input config)");
+        }
     }
 
     return TRUE;

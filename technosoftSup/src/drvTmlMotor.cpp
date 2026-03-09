@@ -251,6 +251,7 @@ TmlAxis::TmlAxis(TmlController *pC, int axisNo)
     , activated_(false)
     , powered_(false)
     , homingActive_(false)
+    , homingMoveSeen_(false)
     , stopping_(false)
     , useLSP_(false)
     , ignoreLSP_(false)
@@ -393,6 +394,36 @@ asynStatus TmlAxis::reinitAxis()
                   "TmlAxis[%d]: reinit TS_DriveInitialisation FAILED: %s\n",
                   axisNo_, TS_GetLastErrorText());
         return asynError;
+    }
+
+    /* Post-ENDINIT diagnostic: read MER and MER_MASK to see the drive's
+     * limit switch state and event configuration.
+     * MER bit6=LSP (positive LS), bit7=LSN (negative LS).
+     * Active inputs mean the firmware will block motion in that direction. */
+    {
+        WORD mer_w = 0;
+        short merMaskVal = 0;
+        TS_ReadStatus(REG_MER, mer_w);
+        TS_GetIntVariable("MER_MASK", merMaskVal);
+
+        bool lspActive = (mer_w & (1 << 6)) != 0;
+        bool lsnActive = (mer_w & (1 << 7)) != 0;
+        DBG(1, "Axis %d: post-ENDINIT MER=0x%04X MER_MASK=0x%04X %s%s",
+            axisNo_, (int)mer_w, (int)(unsigned short)merMaskVal,
+            (lspActive || lsnActive) ? "LS active: " : "no LS active",
+            (lspActive || lsnActive) ?
+                (lspActive && lsnActive ? "LSP(+) LSN(-)" :
+                 lspActive ? "LSP(+)" : "LSN(-)") : "");
+        if (lspActive || lsnActive) {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_WARNING,
+                      "TmlAxis[%d]: WARNING post-ENDINIT: MER=0x%04X — "
+                      "limit switch inputs active at boot: %s%s\n"
+                      "  If motor is NOT at a physical limit, check LS wiring "
+                      "polarity (NC/NO switch type).\n",
+                      axisNo_, (int)mer_w,
+                      lspActive ? "LSP(+) " : "",
+                      lsnActive ? "LSN(-) " : "");
+        }
     }
 
     /* Configure encoder input via SCR (Setup Configuration Register).
@@ -637,6 +668,12 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
     homingActive_ = false;
     stopping_     = false;
 
+    /* Disarm any limit-switch event left armed by a previous home() call.
+     * If MER_MASK still has bit6/7 set and the LS input is HIGH, the drive
+     * applies an immediate stop right after UPD, giving MC=1 before the
+     * motor moves.  ClearLimitSwitchEvent is a no-op when MER_MASK is already 0. */
+    TS_ClearLimitSwitchEvent();
+
     BOOL ok;
     long pos = (long)position;
 
@@ -694,6 +731,9 @@ asynStatus TmlAxis::moveVelocity(double minVelocity, double maxVelocity,
 
     homingActive_ = false;
     stopping_     = false;
+
+    /* Disarm any stale LS event from a previous home() before starting jog */
+    TS_ClearLimitSwitchEvent();
 
     BOOL ok = TS_MoveVelocity(maxVelocity, acceleration,
                               UPDATE_IMMEDIATE, FROM_REFERENCE);
@@ -777,6 +817,12 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
         lsType = LSW_NEGATIVE;
     }
 
+    /* Clear any stale LSP/LSN latch in MER (and the MER_MASK event bits)
+     * before arming the new event.  If MER already has the target limit-switch
+     * bit set when we call TS_SetEventOnLimitSwitch, the drive's event
+     * condition is immediately satisfied and MC fires before the motor moves. */
+    TS_ClearLimitSwitchEvent();
+
     BOOL ok = TS_MoveVelocity(speed, fabs(acceleration),
                               UPDATE_IMMEDIATE, FROM_REFERENCE);
     if (ok) {
@@ -795,8 +841,9 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
 
     DBG(1, "CMD Axis %d: home %s OK — homing started",
         axisNo_, forwards ? "FORWARD(LSP)" : "REVERSE(LSN)");
-    homingActive_ = true;
-    stopping_     = false;
+    homingActive_    = true;
+    homingMoveSeen_  = false;  /* guard: require actual movement before completion */
+    stopping_        = false;
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
     setIntegerParam(pC_->motorStatusHomed_, 0);
@@ -823,6 +870,11 @@ asynStatus TmlAxis::stop(double acceleration)
      * speed loop.  In open-loop mode STOP3 only stops the reference
      * generator (TPOS) while the physical motor keeps running. */
     TS_ABORT();
+
+    /* Disarm LS event if homing was in progress — without this, the next
+     * move command would be immediately blocked by the still-armed MER_MASK */
+    if (homingActive_)
+        TS_ClearLimitSwitchEvent();
 
     pC_->tmlLock_.unlock();
 
@@ -1060,6 +1112,10 @@ asynStatus TmlAxis::poll(bool *moving)
 
     *moving = !motionComplete && axisON;
 
+    /* Track that homing motion actually started (MC cleared at least once) */
+    if (homingActive_ && *moving)
+        homingMoveSeen_ = true;
+
     /* Sync powered_ / activated_ with hardware-reported AxisON state */
     if (axisON && !powered_) {
         powered_   = true;
@@ -1098,8 +1154,14 @@ asynStatus TmlAxis::poll(bool *moving)
         DBG(1, "Axis %d FAULT: SRH=0x%04X SRL=0x%04X MER=0x%04X — %s",
             axisNo_, srh, srl, mer, faultBuf);
 
-    /* Homing complete logic: if we were homing and motion is now complete */
-    if (homingActive_ && motionComplete) {
+    /* Homing complete logic: motion-complete after we confirmed the drive
+     * was actually moving (homingMoveSeen_).  This guards against two races:
+     *   1. SRL.MC=1 when idle — first poll after home() starts still sees MC=1.
+     *   2. Stale MER latch — pre-existing LSP/LSN bit would satisfy the event
+     *      condition immediately if not cleared before TS_SetEventOnLimitSwitch.
+     * Both are also addressed at the source (see home()), but the guard here
+     * provides defence-in-depth. */
+    if (homingActive_ && motionComplete && homingMoveSeen_) {
         /* Set absolute position to zero at home.
          * TML_lib: use TS_Execute("SAP 0") — the TML direct command that
          *   resets both target and actual position registers atomically.

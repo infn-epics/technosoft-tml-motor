@@ -114,6 +114,15 @@ typedef char*       LPSTR;
 #define TML_DM_MASTERID   0x0916   /* MASTERID register */
 #define TML_DM_SCR        0x0300   /* Setup Configuration Register (16-bit) */
 
+/* Limit switch hardware protection disable flag (MotionChip II).
+ * Writing 1 here disables firmware-level overtravel protection so that
+ * active levels on LS inputs no longer block movement.  MER_MASK only
+ * controls the *event* system; this flag controls the *motion blocking*
+ * behaviour which is independent of MER_MASK.  See TML Programming
+ * Manual §2.3.3: "You can disable the limit switches by … writing 1
+ * at data memory address 0x0832". */
+#define TML_DM_LS_DISABLE 0x0832
+
 /* ================================================================= */
 /*      TML Online Communication Opcodes                             */
 /*  (Well-documented: serial protocol reference)                     */

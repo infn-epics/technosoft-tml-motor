@@ -158,6 +158,7 @@ private:
     bool activated_;           /* True after DriveInitialisation + Power ON */
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
+    bool homingMoveSeen_;      /* True after at least one poll saw MC=0 (drive moved) */
     bool stopping_;            /* True after stop() until hardware confirms MC */
     bool useLSP_;              /* true = home on LSP, false = LSN */
     bool ignoreLSP_;           /* true = do not report HLS (positive limit unconnected) */
