@@ -6,10 +6,13 @@
 # work with the new asyn motor driver.
 #
 # Macros:
-#   P     -- Common PV prefix with trailing colon (e.g. "SPARC:MOT:TML:")
-#   M     -- Axis name = last colon segment (e.g. "GUNFLG01")
-#   PORT  -- Asyn port name (e.g. "tml-ch1")
-#   ADDR  -- Axis number, 0-based
+#   P        -- Common PV prefix with trailing colon (e.g. "SPARC:MOT:TML:")
+#   M        -- Axis name = last colon segment (e.g. "GUNFLG01")
+#   PORT     -- Asyn port name (e.g. "tml-ch1")
+#   ADDR     -- Axis number, 0-based
+#   HOMEDIR  -- Home direction field: "HOMR" (toward LSN, default) or
+#               "HOMF" (toward LSP).  Must match the homingSwitch
+#               parameter used in TmlAxisConfig.
 #
 # Motor record PV:  $(P)$(M)           e.g. SPARC:MOT:TML:GUNFLG01
 # Legacy OPI PV:    $(P)$(M):SUFFIX    e.g. SPARC:MOT:TML:GUNFLG01:STAT
@@ -93,13 +96,13 @@ record(calc, "$(P)$(M):BUSY") {
 }
 
 # =====================================================================
-# Potentiometer / actual position readback (progress bar)
-# Legacy: POTM_RB -- raw encoder position (0..65535 range)
-# Map from APOS (actual encoder) -- users may need to adjust scaling
+# Potentiometer / ADC readback (progress bar)
+# Legacy: POTM_RB -- raw potentiometer/ADC value (0..65535 range)
+# New driver exposes TML_POTM via $(P)$(M):POTM in motor.db
 # =====================================================================
 record(ai, "$(P)$(M):POTM_RB") {
-  field(DESC, "Actual position readback (compat)")
-  field(INP,  "$(P)$(M):APOS CP MS")
+  field(DESC, "Potentiometer readback (compat)")
+  field(INP,  "$(P)$(M):POTM CP MS")
   field(PREC, "0")
 }
 
@@ -249,8 +252,13 @@ record(calcout, "$(P)$(M):VAL_MM_SP_calc") {
 # =====================================================================
 # Action selector (legacy state machine concept)
 # Legacy: ACT -- combo box with action names
+#   0=NONE, 1=MOVE ABS, 2=MOVE REL, 3=HOME, 4=JOG FWD, 5=JOG REV, 6=TML SUB
 # Legacy: ACT_RB -- current action readback
 # Legacy: ACTX_SP -- execute action (1=START, 2=STOP)
+#
+# Home direction is set by the HOMEDIR macro:
+#   HOMEDIR=HOMR (default) -> home toward LSN (negative limit)
+#   HOMEDIR=HOMF           -> home toward LSP (positive limit)
 # =====================================================================
 record(mbbo, "$(P)$(M):ACT") {
   field(DESC, "Action selector (compat)")
@@ -272,19 +280,47 @@ record(stringin, "$(P)$(M):ACT_RB") {
 
 record(longout, "$(P)$(M):ACTX_SP") {
   field(DESC, "Execute action (compat)")
-  field(FLNK, "$(P)$(M):ACTX_exec")
+  field(FLNK, "$(P)$(M):ACTX_dispatch")
 }
 
-# Execute action: 1=START, 2=STOP
-record(calcout, "$(P)$(M):ACTX_exec") {
-  field(DESC, "Action executor")
+# Dispatch: ACTX_SP=2 -> STOP, ACTX_SP=1 -> fan-out to action handler
+record(calcout, "$(P)$(M):ACTX_dispatch") {
+  field(DESC, "ACTX stop/start dispatch")
   field(INPA, "$(P)$(M):ACTX_SP")
-  field(INPB, "$(P)$(M):ACT")
-  field(INPC, "$(P)$(M):VAL_SP")
   field(CALC, "A=2?1:0")
   field(OOPT, "When Non-zero")
   field(DOPT, "Use CALC")
   field(OUT,  "$(P)$(M).STOP PP")
+  field(FLNK, "$(P)$(M):ACTX_run")
+}
+
+# When ACTX_SP=1 (RUN), dispatch based on ACT selector
+record(calcout, "$(P)$(M):ACTX_run") {
+  field(DESC, "ACTX run dispatch")
+  field(INPA, "$(P)$(M):ACTX_SP")
+  field(INPB, "$(P)$(M):ACT")
+  field(CALC, "A=1?B+1:0")
+  field(OOPT, "When Non-zero")
+  field(DOPT, "Use CALC")
+  field(OUT,  "$(P)$(M):ACTX_sel.SELN PP")
+}
+
+# Fan-out by action index:
+#   CALC returns B+1 so: 1=NONE(noop),2=MOVE_ABS,3=MOVE_REL,4=HOME,5=JOG_FWD,6=JOG_REV
+record(seq, "$(P)$(M):ACTX_sel") {
+  field(DESC, "Action selector fan-out")
+  field(SELM, "Specified")
+  field(SELL, "$(P)$(M):ACTX_sel.SELN")
+  field(DOL2, "$(P)$(M):VAL_SP")
+  field(LNK2, "$(P)$(M).VAL PP")
+  field(DOL3, "$(P)$(M):VAL_SP")
+  field(LNK3, "$(P)$(M).RLV PP")
+  field(DOL4, "1")
+  field(LNK4, "$(P)$(M).$(HOMEDIR=HOMR) PP")
+  field(DOL5, "1")
+  field(LNK5, "$(P)$(M).JOGF PP")
+  field(DOL6, "1")
+  field(LNK6, "$(P)$(M).JOGR PP")
 }
 
 # =====================================================================

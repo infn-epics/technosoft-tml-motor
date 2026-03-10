@@ -97,6 +97,9 @@ typedef char*       LPSTR;
 #define TML_DM_CSPD       0x0230   /* Commanded speed (32-bit, IU fixed 16.16) */
 #define TML_DM_CACC       0x0232   /* Commanded acceleration (32-bit, IU fixed 16.16) */
 
+/* Analog input / potentiometer register (16-bit) */
+#define TML_DM_POTM       0x0240   /* Potentiometer / ADC input 1 (ANIN1, 16-bit, 0-65535) */
+
 /* Status / control registers (16-bit) */
 #define TML_DM_MCR        0x0908   /* Motion Control Register */
 #define TML_DM_MSR        0x0909   /* Motion Status Register */

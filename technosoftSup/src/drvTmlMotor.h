@@ -35,8 +35,9 @@ class TmlAxis;
 #define TML_RESET_FAULT_String  "TML_RESET_FAULT"  /* asynInt32, W   — write 1 to reset faults */
 #define TML_SAVE_EEPROM_String  "TML_SAVE_EEPROM"  /* asynInt32, W   — write 1 to save to EEPROM */
 #define TML_RESET_DRIVE_String  "TML_RESET_DRIVE"  /* asynInt32, W   — write 1 to reset drive */
+#define TML_POTM_String         "TML_POTM"         /* asynFloat64, R — potentiometer / ADC readback */
 
-#define NUM_TML_PARAMS 14
+#define NUM_TML_PARAMS 15
 
 /* ================================================================= */
 /*                         TmlController                              */
@@ -105,6 +106,7 @@ protected:
     int tmlResetFault_;
     int tmlSaveEeprom_;
     int tmlResetDrive_;
+    int tmlPOTM_;
 
     friend class TmlAxis;
 };

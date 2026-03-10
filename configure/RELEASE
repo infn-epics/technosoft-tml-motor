@@ -1,9 +1,10 @@
 EPICS_BASE = /epics/epics-base/
 SUPPORT = $(EPICS_BASE)/../support
 ASYN = $(SUPPORT)/asyn
+CALC = $(SUPPORT)/calc
 MOTOR = $(SUPPORT)/motor
 MOT_TML_LIB = $(TOP)/tml_lib
-
+CALC = $(SUPPORT)/calc
 -include $(TOP)/../RELEASE.local
 -include $(TOP)/../RELEASE.$(EPICS_HOST_ARCH).local
 -include $(TOP)/configure/RELEASE.local

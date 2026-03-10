@@ -9,6 +9,7 @@ PROD_IOC = technosoft
 DBD += technosoft.dbd
 technosoft_DBD += base.dbd
 technosoft_DBD += asyn.dbd
+technosoft_DBD += calcSupport.dbd
 technosoft_DBD += motorSupport.dbd
 technosoft_DBD += devTechnosoft.dbd
 
@@ -35,6 +36,7 @@ technosoft_SRCS_DEFAULT += technosoftMain.cpp
 # -------------------------------------------------------
 technosoft_LIBS += TechnosoftMotor
 technosoft_LIBS += motor
+technosoft_LIBS += calc
 technosoft_LIBS += asyn
 technosoft_LIBS += $(EPICS_BASE_IOC_LIBS)
 

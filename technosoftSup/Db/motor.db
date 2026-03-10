@@ -155,6 +155,18 @@ record(ai, "$(P)$(M):CSPD") {
   field(EGU,  "IU/s")
 }
 
+# Potentiometer / ADC input readback (POTM)
+record(ai, "$(P)$(M):POTM") {
+  field(DESC, "TML potentiometer readback")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_POTM")
+  field(SCAN, "I/O Intr")
+  field(PREC, "0")
+  field(EGU,  "ADC")
+  field(HOPR, "65535")
+  field(LOPR, "0")
+}
+
 # -------------------------------------------------------
 # TML Command records (write-only; write 1 to trigger)
 # -------------------------------------------------------

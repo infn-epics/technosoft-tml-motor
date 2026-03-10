@@ -124,6 +124,8 @@ void TmlVariableMap::registerDefaults()
     map_["SRH_MASK"] = TML_DM_SRH_MASK;
     map_["MER_MASK"] = TML_DM_MER_MASK;
     map_["MASTERID"] = TML_DM_MASTERID;
+
+    map_["POTM"]     = TML_DM_POTM;
 }
 
 bool TmlVariableMap::getAddress(const char *name, WORD &addr) const

@@ -124,6 +124,7 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     createParam(TML_RESET_FAULT_String,  asynParamInt32,    &tmlResetFault_);
     createParam(TML_SAVE_EEPROM_String,  asynParamInt32,    &tmlSaveEeprom_);
     createParam(TML_RESET_DRIVE_String,  asynParamInt32,    &tmlResetDrive_);
+    createParam(TML_POTM_String,         asynParamFloat64,  &tmlPOTM_);
 
     /* Open the TML communication channel (shared by all axes) */
     char devName[256];
@@ -440,6 +441,17 @@ asynStatus TmlAxis::reinitAxis()
             /* Not fatal — encoder readback won't work but motion may still run */
         } else {
             DBG(1, "Axis %d: SCR=0x%04X written", axisNo_, scrValue_);
+        }
+
+        /* Verify APOS is readable after SCR configuration */
+        long aposCheck = 0;
+        if (TS_GetLongVariable("APOS", aposCheck)) {
+            DBG(1, "Axis %d: post-SCR APOS=%ld (encoder feedback configured)",
+                axisNo_, aposCheck);
+        } else {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: post-SCR APOS read FAILED: %s\n",
+                      axisNo_, TS_GetLastErrorText());
         }
     }
 
@@ -1008,6 +1020,19 @@ asynStatus TmlAxis::poll(bool *moving)
     BOOL posOk  = TS_GetLongVariable("TPOS", pos);
     BOOL aposOk = TS_GetLongVariable("APOS", apos);
 
+    /* Log APOS diagnostic on first successful poll */
+    if (pollCount_ == 0) {
+        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
+                  "TmlAxis[%d]: first poll APOS read %s, value=%ld  TPOS=%ld\n",
+                  axisNo_, aposOk ? "OK" : "FAILED", apos, pos);
+        if (!aposOk) {
+            asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: WARNING — APOS read failed (%s). "
+                      ".REP will mirror TPOS. Consider setting UEIP=No.\n",
+                      axisNo_, TS_GetLastErrorText());
+        }
+    }
+
     /* ---- Read status registers: SRL, MER (minimum set for motion control) ---- */
     unsigned short srh = 0, srl = 0, mer = 0;
     WORD srl_w = 0, mer_w = 0;
@@ -1020,16 +1045,19 @@ asynStatus TmlAxis::poll(bool *moving)
     bool srlFault = (srl & (SRL_BIT_GFLT | SRL_BIT_AFLT)) != 0;
     WORD mcr_w = 0, msr_w = 0, isr_w = 0, srh_w = 0;
     long cspd_raw = 0;
+    short potm_raw = 0;
     if (srlFault) {
         TS_ReadStatus(REG_SRH, srh_w);
         srh = (unsigned short)srh_w;
     }
-    /* Read MCR/MSR/ISR/CSPD only every 10th poll to reduce bus traffic */
-    if ((pollCount_ % 10) == 0) {
+    /* Read MCR/MSR/ISR/CSPD/POTM only every 10th poll to reduce bus traffic */
+    bool slowPoll = (pollCount_ % 10) == 0;
+    if (slowPoll) {
         TS_ReadStatus(REG_MCR, mcr_w);
         TS_ReadStatus(REG_MSR, msr_w);
         TS_ReadStatus(REG_ISR, isr_w);
         TS_GetLongVariable("CSPD", cspd_raw);
+        TS_GetIntVariable("POTM", potm_raw);
     }
     pollCount_++;
 
@@ -1051,19 +1079,31 @@ asynStatus TmlAxis::poll(bool *moving)
     if (aposOk) {
         setDoubleParam(pC_->motorEncoderPosition_, (double)apos);
         setDoubleParam(pC_->tmlAPOS_, (double)apos);
+    } else {
+        /* APOS read failed — mirror TPOS into encoder position so that
+         * .REP stays current even without a working encoder. */
+        setDoubleParam(pC_->motorEncoderPosition_, (double)pos);
+        setDoubleParam(pC_->tmlAPOS_, (double)pos);
     }
 
-    /* Commanded speed (CSPD): fixed-point 16.16 → double */
-    double cspd_val = (double)cspd_raw / 65536.0;
-    setDoubleParam(pC_->tmlCSPD_, cspd_val);
+    /* Commanded speed (CSPD), POTM and MCR/MSR/ISR: only update on slow-poll
+     * cycles to avoid overwriting with stale zeros on every fast poll. */
+    if (slowPoll) {
+        double cspd_val = (double)cspd_raw / 65536.0;
+        setDoubleParam(pC_->tmlCSPD_, cspd_val);
+
+        /* Potentiometer / ADC readback (POTM): 16-bit unsigned, 0-65535 */
+        setDoubleParam(pC_->tmlPOTM_, (double)(unsigned short)potm_raw);
+
+        setIntegerParam(pC_->tmlMCR_, (int)mcr_w);
+        setIntegerParam(pC_->tmlMSR_, (int)msr_w);
+        setIntegerParam(pC_->tmlISR_, (int)isr_w);
+    }
 
     /* Publish raw registers */
     setIntegerParam(pC_->tmlSRH_, (int)srh);
     setIntegerParam(pC_->tmlSRL_, (int)srl);
     setIntegerParam(pC_->tmlMER_, (int)mer);
-    setIntegerParam(pC_->tmlMCR_, (int)mcr_w);
-    setIntegerParam(pC_->tmlMSR_, (int)msr_w);
-    setIntegerParam(pC_->tmlISR_, (int)isr_w);
 
     /* ---- Map TML status to motor record status bits ---- */
 
