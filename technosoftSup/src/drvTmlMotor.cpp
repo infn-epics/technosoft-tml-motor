@@ -683,7 +683,8 @@ asynStatus TmlAxis::move(double position, int relative, double minVelocity,
     /* Disarm any limit-switch event left armed by a previous home() call.
      * If MER_MASK still has bit6/7 set and the LS input is HIGH, the drive
      * applies an immediate stop right after UPD, giving MC=1 before the
-     * motor moves.  ClearLimitSwitchEvent is a no-op when MER_MASK is already 0. */
+     * motor moves.  ClearLimitSwitchEvent is a no-op when MER_MASK is already 0.
+     * The firmware allows motion away from the active limit by design. */
     TS_ClearLimitSwitchEvent();
 
     BOOL ok;
@@ -832,7 +833,8 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
     /* Clear any stale LSP/LSN latch in MER (and the MER_MASK event bits)
      * before arming the new event.  If MER already has the target limit-switch
      * bit set when we call TS_SetEventOnLimitSwitch, the drive's event
-     * condition is immediately satisfied and MC fires before the motor moves. */
+     * condition is immediately satisfied and MC fires before the motor moves.
+     * The firmware allows motion away from the active limit by design. */
     TS_ClearLimitSwitchEvent();
 
     BOOL ok = TS_MoveVelocity(speed, fabs(acceleration),

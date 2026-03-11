@@ -1807,12 +1807,11 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
 
     /* Pre-UPD diagnostic: capture MER + MER_MASK state right before UPD */
     {
-        WORD merPre = 0, merMaskPre = 0, lsDis = 0;
+        WORD merPre = 0, merMaskPre = 0;
         g_activeCh->readData16(resolveAddr("MER", TML_DM_MER), merPre);
         g_activeCh->readData16(resolveAddr("MER_MASK", TML_DM_MER_MASK), merMaskPre);
-        g_activeCh->readData16(TML_DM_LS_DISABLE, lsDis);
-        DBG_SER(1, "MoveAbsolute PRE-UPD: MER=0x%04X MER_MASK=0x%04X LS_DISABLE=0x%04X",
-                merPre, merMaskPre, lsDis);
+        DBG_SER(1, "MoveAbsolute PRE-UPD: MER=0x%04X MER_MASK=0x%04X",
+                merPre, merMaskPre);
     }
 
     /* 6. Update */
@@ -2059,16 +2058,18 @@ BOOL TS_Reset(void)
     return TRUE;
 }
 
-BOOL TS_ClearLimitSwitchEvent(void)
+void TS_ClearLimitSwitchEvent(void)
 {
     if (!g_activeCh) {
         setGlobalError("TS_ClearLimitSwitchEvent: no active channel");
-        return FALSE;
+        return;
     }
 
     /* Remove limit switch event bits from MER_MASK so the drive no longer
      * latches LSP/LSN in MER.  Then clear any already-latched LS bits
-     * in MER itself.  After this, MER bits 6-7 reflect live input state. */
+     * in MER itself.  After this, MER bits 6-7 reflect live input state.
+     * The firmware's own directional protection remains active: it blocks
+     * motion towards the active limit but allows motion away from it. */
     WORD merMaskAddr = resolveAddr("MER_MASK", TML_DM_MER_MASK);
     WORD merMask = 0;
     g_activeCh->readData16(merMaskAddr, merMask);
@@ -2087,8 +2088,6 @@ BOOL TS_ClearLimitSwitchEvent(void)
         DBG_SER(1, "ClearLimitSwitchEvent: MER 0x%04X → 0x%04X", mer, newMer);
         g_activeCh->writeData16(merAddr, newMer);
     }
-
-    return TRUE;
 }
 
 BOOL TS_DisableLimitProtection(BOOL disableLSP, BOOL disableLSN)
