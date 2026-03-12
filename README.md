@@ -373,6 +373,47 @@ The `CNEN` field controls the drive's power stage (axis ON/OFF).
 
 ---
 
+## TML Home (`CMD:FHOME`)
+
+The standard motor record `.HOMF`/`.HOMR` fields have a built-in soft
+protection: if the target limit switch is already active (e.g. `LLS=1` when
+requesting `.HOMR`), the motor record silently drops the command — it never
+reaches the driver.  This is a problem when axes power up sitting on their
+home limit switch, which is the normal "parked" position.
+
+`CMD:FHOME` is a smart homing command that bypasses this limitation.  It
+uses the `homingSwitch` parameter from `TmlAxisConfig` to determine the
+correct homing direction (`"LSN"` → reverse, `"LSP"` → forward) and handles
+two cases:
+
+| Situation | Behavior |
+|-----------|----------|
+| Home limit **active** (e.g. LSN=1 for `homingSwitch="LSN"`) | Instant: `SetPosition(0)` + `homed=1`, no motion |
+| Home limit **not active** | Full home move in the configured direction using VELO/ACCL from the motor record |
+
+**PV:** `$(P)$(M):CMD:FHOME` — write 1 to trigger.
+
+**Usage from the IOC shell:**
+
+```
+# Home an axis that is already sitting on its LSN limit:
+dbpf SPARC:MOT:TML:UTLFLG01:CMD:FHOME 1
+
+# Home an axis that is away from the limit — starts a real home move:
+dbpf SPARC:MOT:TML:GUNFLG01:CMD:FHOME 1
+```
+
+**Comparison with `.HOMR`/`.HOMF`:**
+
+| Feature | `.HOMR`/`.HOMF` | `CMD:FHOME` |
+|---------|-----------------|-------------|
+| Direction | Explicit (R=reverse, F=forward) | Automatic from `TmlAxisConfig homingSwitch` |
+| Works when already at limit | No — silently blocked | Yes — instant set-zero |
+| Motor record integration | Full (soft limits, MSTA) | Bypasses motor record soft limit check |
+| Typical use | Manual homing from OPI | Automated homing at startup, or when at limit |
+
+---
+
 ## Database Records
 
 ### motor.db — Primary Motor Record
@@ -425,6 +466,7 @@ command records.
 | `$(P)$(M):CMD:RSTFAULT` | `TML_RESET_FAULT` | Reset drive faults |
 | `$(P)$(M):CMD:SAVE` | `TML_SAVE_EEPROM` | Save parameters to EEPROM |
 | `$(P)$(M):CMD:RESET` | `TML_RESET_DRIVE` | Reset drive processor |
+| `$(P)$(M):CMD:FHOME` | `TML_FORCE_HOME` | TML Home — smart homing (see below) |
 
 **Bit-decoded status (calc records from raw registers):**
 

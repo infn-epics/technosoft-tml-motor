@@ -201,6 +201,18 @@ record(bo, "$(P)$(M):CMD:RESET") {
   field(HIGH, "0.5")
 }
 
+# Force home: set position=0 and mark homed without motion.
+# Use when the axis is already at the home limit switch and
+# the motor record blocks HOMR/HOMF because the limit is active.
+record(bo, "$(P)$(M):CMD:FHOME") {
+  field(DESC, "Force home (set pos=0)")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_FORCE_HOME")
+  field(ZNAM, "Idle")
+  field(ONAM, "Home")
+  field(HIGH, "0.5")
+}
+
 # -------------------------------------------------------
 # Bit-decoded status fields (via CALC from raw registers)
 # Matches Technosoft TML Status Register definitions

@@ -36,8 +36,9 @@ class TmlAxis;
 #define TML_SAVE_EEPROM_String  "TML_SAVE_EEPROM"  /* asynInt32, W   — write 1 to save to EEPROM */
 #define TML_RESET_DRIVE_String  "TML_RESET_DRIVE"  /* asynInt32, W   — write 1 to reset drive */
 #define TML_POTM_String         "TML_POTM"         /* asynFloat64, R — potentiometer / ADC readback */
+#define TML_FORCE_HOME_String   "TML_FORCE_HOME"   /* asynInt32, W   — write 1 to force-home (set pos=0 + homed) */
 
-#define NUM_TML_PARAMS 15
+#define NUM_TML_PARAMS 16
 
 /* ================================================================= */
 /*                         TmlController                              */
@@ -107,6 +108,7 @@ protected:
     int tmlSaveEeprom_;
     int tmlResetDrive_;
     int tmlPOTM_;
+    int tmlForceHome_;
 
     friend class TmlAxis;
 };
@@ -151,6 +153,9 @@ public:
     /* Helper: select this axis's channel + axis before every TML call */
     asynStatus selectAxis();
 
+    /* Force-home: set position to 0 and mark homed without motion */
+    asynStatus forceHome();
+
 private:
     TmlController *pC_;
 
@@ -161,6 +166,7 @@ private:
     bool powered_;             /* Current power-stage state */
     bool homingActive_;        /* True while homing in progress */
     bool homingMoveSeen_;      /* True after at least one poll saw MC=0 (drive moved) */
+    bool homingTowardLSP_;     /* True if current home is toward LSP, false = LSN */
     bool stopping_;            /* True after stop() until hardware confirms MC */
     bool useLSP_;              /* true = home on LSP, false = LSN */
     bool ignoreLSP_;           /* true = do not report HLS (positive limit unconnected) */

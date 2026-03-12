@@ -125,6 +125,7 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     createParam(TML_SAVE_EEPROM_String,  asynParamInt32,    &tmlSaveEeprom_);
     createParam(TML_RESET_DRIVE_String,  asynParamInt32,    &tmlResetDrive_);
     createParam(TML_POTM_String,         asynParamFloat64,  &tmlPOTM_);
+    createParam(TML_FORCE_HOME_String,   asynParamInt32,    &tmlForceHome_);
 
     /* Open the TML communication channel (shared by all axes) */
     char devName[256];
@@ -235,6 +236,9 @@ asynStatus TmlController::writeInt32(asynUser *pasynUser, epicsInt32 value)
         tmlLock_.unlock();
         return asynSuccess;
     }
+    if (function == tmlForceHome_ && value && pAxis) {
+        return pAxis->forceHome();
+    }
 
     return asynMotorController::writeInt32(pasynUser, value);
 }
@@ -253,6 +257,7 @@ TmlAxis::TmlAxis(TmlController *pC, int axisNo)
     , powered_(false)
     , homingActive_(false)
     , homingMoveSeen_(false)
+    , homingTowardLSP_(false)
     , stopping_(false)
     , useLSP_(false)
     , ignoreLSP_(false)
@@ -857,6 +862,7 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
         axisNo_, forwards ? "FORWARD(LSP)" : "REVERSE(LSN)");
     homingActive_    = true;
     homingMoveSeen_  = false;  /* guard: require actual movement before completion */
+    homingTowardLSP_ = (forwards != 0);  /* remember which limit we're homing toward */
     stopping_        = false;
     setIntegerParam(pC_->motorStatusDone_, 0);
     setIntegerParam(pC_->motorStatusMoving_, 1);
@@ -864,6 +870,69 @@ asynStatus TmlAxis::home(double minVelocity, double maxVelocity,
     callParamCallbacks();
 
     return asynSuccess;
+}
+
+asynStatus TmlAxis::forceHome()
+{
+    if (!configured_) return asynError;
+
+    /* Determine the configured home direction from TmlAxisConfig homingSwitch */
+    int forwards = useLSP_ ? 1 : 0;   /* LSP → HOMF, LSN → HOMR */
+
+    /* Read MER to check if the home limit switch is already active */
+    pC_->tmlLock_.lock();
+    asynStatus st = selectAxis();
+    WORD mer_w = 0;
+    if (st == asynSuccess)
+        TS_ReadStatus(REG_MER, mer_w);
+    pC_->tmlLock_.unlock();
+
+    if (st != asynSuccess) {
+        DBG(1, "CMD Axis %d: FORCE HOME ABORTED — selectAxis failed", axisNo_);
+        return st;
+    }
+
+    unsigned short mer = (unsigned short)mer_w;
+    bool homeLimitActive = useLSP_ ? (mer & MER_BIT_LSP) != 0
+                                   : (mer & MER_BIT_LSN) != 0;
+
+    if (homeLimitActive) {
+        /* Already at home limit — instant set-zero + mark homed */
+        DBG(1, "CMD Axis %d: FORCE HOME — %s active, setting position=0",
+            axisNo_, useLSP_ ? "LSP" : "LSN");
+
+        pC_->tmlLock_.lock();
+        selectAxis();
+        TS_SetPosition(0);
+        TS_ClearLimitSwitchEvent();
+        pC_->tmlLock_.unlock();
+
+        homingActive_ = false;
+        setIntegerParam(pC_->motorStatusHomed_, 1);
+        setIntegerParam(pC_->motorStatusAtHome_, 1);
+        setDoubleParam(pC_->motorPosition_, 0.0);
+        callParamCallbacks();
+
+        DBG(1, "CMD Axis %d: FORCE HOME OK — position=0, homed=1", axisNo_);
+        return asynSuccess;
+    }
+
+    /* Not at home limit — perform a real home move in the configured direction.
+     * Pull velocity from VELO and acceleration from ACCL.
+     * (HVEL is only available as an argument to home(); from here we use VELO.) */
+    double velo = 0, accl = 0;
+    pC_->getDoubleParam(axisNo_, pC_->motorVelocity_, &velo);
+    pC_->getDoubleParam(axisNo_, pC_->motorAccel_, &accl);
+
+    double maxVelocity = (velo > 0) ? velo : 40.0;
+    double acceleration = (accl > 0) ? accl : 1.0;
+
+    DBG(1, "CMD Axis %d: FORCE HOME — %s not active, starting home %s vel=%.2f acc=%.2f",
+        axisNo_, useLSP_ ? "LSP" : "LSN",
+        forwards ? "FORWARD(LSP)" : "REVERSE(LSN)",
+        maxVelocity, acceleration);
+
+    return home(0.0, maxVelocity, acceleration, forwards);
 }
 
 asynStatus TmlAxis::stop(double acceleration)
@@ -1202,8 +1271,21 @@ asynStatus TmlAxis::poll(bool *moving)
      *   2. Stale MER latch — pre-existing LSP/LSN bit would satisfy the event
      *      condition immediately if not cleared before TS_SetEventOnLimitSwitch.
      * Both are also addressed at the source (see home()), but the guard here
-     * provides defence-in-depth. */
-    if (homingActive_ && motionComplete && homingMoveSeen_) {
+     * provides defence-in-depth.
+     *
+     * Fallback: if the motor was already sitting on the target limit switch
+     * when homing started, the event fires so fast that the poll never sees
+     * motion (MC never goes to 0).  In that case homingMoveSeen_ stays false
+     * but the target limit switch IS active — accept that as completion.
+     */
+    bool homingLimitActive = homingTowardLSP_ ? lsp : lsn;
+    if (homingActive_) {
+        DBG(1, "Axis %d HOMING: MC=%d moveSeen=%d lsp=%d lsn=%d MER=0x%04X towardLSP=%d limitActive=%d",
+            axisNo_, (int)motionComplete, (int)homingMoveSeen_,
+            (int)lsp, (int)lsn, (unsigned)mer,
+            (int)homingTowardLSP_, (int)homingLimitActive);
+    }
+    if (homingActive_ && motionComplete && (homingMoveSeen_ || homingLimitActive)) {
         /* Set absolute position to zero at home.
          * TML_lib: use TS_Execute("SAP 0") — the TML direct command that
          *   resets both target and actual position registers atomically.
