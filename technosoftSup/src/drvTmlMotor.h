@@ -37,8 +37,13 @@ class TmlAxis;
 #define TML_RESET_DRIVE_String  "TML_RESET_DRIVE"  /* asynInt32, W   — write 1 to reset drive */
 #define TML_POTM_String         "TML_POTM"         /* asynFloat64, R — potentiometer / ADC readback */
 #define TML_FORCE_HOME_String   "TML_FORCE_HOME"   /* asynInt32, W   — write 1 to force-home (set pos=0 + homed) */
+#define TML_CLEAR_ENCODER_String "TML_CLEAR_ENCODER" /* asynInt32, W  — write 1 to clear APOS only */
+#define TML_CLEAR_STEPS_String  "TML_CLEAR_STEPS"  /* asynInt32, W   — write 1 to clear TPOS only */
+#define TML_ENABLE_OFF_String   "TML_ENABLE_OFF"   /* asynInt32, R   — hardware Enable input (IN4/EN) status; 1=input deasserted */
+#define TML_PCR_String          "TML_PCR"          /* asynInt32, R   — Protections Control Register (bits 8-13: protection trip status) */
+#define TML_POWERON_FAILED_String "TML_POWERON_FAILED" /* asynInt32, R — 1=last powerOn() attempt timed out waiting for SRL AXIS_ON */
 
-#define NUM_TML_PARAMS 16
+#define NUM_TML_PARAMS 21
 
 /* ================================================================= */
 /*                         TmlController                              */
@@ -109,6 +114,11 @@ protected:
     int tmlResetDrive_;
     int tmlPOTM_;
     int tmlForceHome_;
+    int tmlClearEncoder_;
+    int tmlClearSteps_;
+    int tmlEnableOff_;
+    int tmlPCR_;
+    int tmlPowerOnFailed_;
 
     friend class TmlAxis;
 };

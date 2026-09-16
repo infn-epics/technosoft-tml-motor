@@ -432,6 +432,7 @@ command records.
 | `ADDR` | Axis number (0-based) | — |
 | `DIR` | Direction (Pos/Neg) | Pos |
 | `MRES` | Motor resolution (EGU/step) | — |
+| `ARES` | Encoder resolution (EGU/count), applied to motor-record `ERES` | `MRES` |
 | `VELO` | Velocity | — |
 | `DHLM` | Dial high limit | 0 |
 | `DLLM` | Dial low limit | 0 |
@@ -467,6 +468,27 @@ command records.
 | `$(P)$(M):CMD:SAVE` | `TML_SAVE_EEPROM` | Save parameters to EEPROM |
 | `$(P)$(M):CMD:RESET` | `TML_RESET_DRIVE` | Reset drive processor |
 | `$(P)$(M):CMD:FHOME` | `TML_FORCE_HOME` | TML Home — smart homing (see below) |
+| `$(P)$(M):CMD:CLRENC` | `TML_CLEAR_ENCODER` | Clear encoder counter (`APOS`) only |
+| `$(P)$(M):CMD:CLRSTEP` | `TML_CLEAR_STEPS` | Clear step/trajectory counter (`TPOS`) only |
+
+The counter commands are also available as **Clear Encoder** and **Clear Step
+Counter** buttons in `opi/tml_debug.bob`. Each button asks for confirmation
+before writing `1` to its command PV. Stop the motor before using either
+command: clearing `APOS` changes only the encoder coordinate, while clearing
+`TPOS` changes only the trajectory/step coordinate. The two counters can
+therefore temporarily disagree by design.
+
+For command-line use:
+
+```text
+caput $(P)$(M):CMD:CLRENC 1
+caput $(P)$(M):CMD:CLRSTEP 1
+```
+
+`ARES` controls the encoder resolution passed to the motor record’s native
+`ERES` field. For example, `MRES=0.001,ARES=0.00025` means motor steps are
+0.001 EGU while encoder counts are 0.00025 EGU. If `ARES` is omitted, the
+database defaults it to `MRES`.
 
 **Bit-decoded status (calc records from raw registers):**
 
@@ -581,10 +603,12 @@ $(P)$(M).RBV  ◄──poll───  motor record  ◄──poll──  readDat
 $(P)$(M):SRL  ◄──I/O Intr callback──────────────  readData16(SRL)
 $(P)$(M):MER  ◄──I/O Intr callback──────────────  readData16(MER)
 $(P)$(M):APOS ◄──I/O Intr callback──────────────  readData32(APOS)
+
+$(P)$(M):CMD:CLRENC ──write──► writeData32(APOS, 0)
+$(P)$(M):CMD:CLRSTEP ──write──► writeData32(TPOS, 0)
 ```
 
 The driver polls each axis at the configured rate (moving poll / idle poll).
 Status registers (SRL, SRH, MER, MCR, MSR, ISR) and auxiliary readbacks
 (APOS, CSPD, POTM) are updated via asyn parameter callbacks on every poll
 cycle (POTM and others on a slower 1-in-10 cycle to reduce bus traffic).
-

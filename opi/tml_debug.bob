@@ -1,0 +1,2176 @@
+<display version="2.0.0">
+  <name>tml_debug</name>
+  <x>0</x>
+  <y>0</y>
+  <width>900</width>
+  <height>700</height>
+  <grid_step_x>4</grid_step_x>
+  <grid_step_y>4</grid_step_y>
+  <macros>
+    
+  </macros>
+  <widget type="label" version="2.0.0">
+    <name>Title</name>
+    <text>TML Axis Test/Debug — $(P)$(M)</text>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>32</height>
+    <font>
+      <font name="Default" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="tabs" version="2.0.0">
+    <name>MainTabs</name>
+    <x>0</x>
+    <y>36</y>
+    <width>900</width>
+    <height>664</height>
+    <tabs>
+      <tab>
+        <name>Motion &amp; Power</name>
+        <children>
+          <widget type="group" version="3.0.0">
+            <name>Motion</name>
+            <x>8</x>
+            <y>8</y>
+            <width>430</width>
+            <height>260</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>l1</name>
+              <text>RBV</text>
+              <x>12</x>
+              <y>30</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textupdate" version="2.0.0">
+              <name>rbv</name>
+              <pv_name>$(P)$(M).RBV</pv_name>
+              <x>106</x>
+              <y>30</y>
+              <width>100</width>
+              <height>24</height>
+              <precision>3</precision>
+              <show_units>false</show_units>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>1</horizontal_alignment>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l2</name>
+              <text>VAL</text>
+              <x>12</x>
+              <y>58</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textentry" version="3.0.0">
+              <name>val</name>
+              <pv_name>$(P)$(M).VAL</pv_name>
+              <x>106</x>
+              <y>58</y>
+              <width>100</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l3</name>
+              <text>DVAL</text>
+              <x>12</x>
+              <y>86</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textentry" version="3.0.0">
+              <name>dval</name>
+              <pv_name>$(P)$(M).DVAL</pv_name>
+              <x>106</x>
+              <y>86</y>
+              <width>100</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l4</name>
+              <text>DMOV</text>
+              <x>220</x>
+              <y>30</y>
+              <width>70</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>dmov</name>
+              <pv_name>$(P)$(M).DMOV</pv_name>
+              <x>294</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l5</name>
+              <text>MOVN</text>
+              <x>220</x>
+              <y>58</y>
+              <width>70</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>movn</name>
+              <pv_name>$(P)$(M).MOVN</pv_name>
+              <x>294</x>
+              <y>58</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l6</name>
+              <text>STOP</text>
+              <x>220</x>
+              <y>86</y>
+              <width>70</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>stopd</name>
+              <pv_name>$(P)$(M).STOP</pv_name>
+              <x>294</x>
+              <y>86</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>jogr</name>
+              <text>Jog -</text>
+              <x>12</x>
+              <y>122</y>
+              <width>90</width>
+              <height>28</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M).JOGR</pv_name>
+                  <value>1</value>
+                  <description>Jog -</description>
+                </action>
+              </actions>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>stopb</name>
+              <text>STOP</text>
+              <x>108</x>
+              <y>122</y>
+              <width>90</width>
+              <height>28</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M).STOP</pv_name>
+                  <value>1</value>
+                  <description>STOP</description>
+                </action>
+              </actions>
+              <confirm_message>Stop motion on $(P)$(M)?</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>jogf</name>
+              <text>Jog +</text>
+              <x>204</x>
+              <y>122</y>
+              <width>90</width>
+              <height>28</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M).JOGF</pv_name>
+                  <value>1</value>
+                  <description>Jog +</description>
+                </action>
+              </actions>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>homr</name>
+              <text>Home Rev</text>
+              <x>12</x>
+              <y>158</y>
+              <width>138</width>
+              <height>28</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M).HOMR</pv_name>
+                  <value>1</value>
+                  <description>Home Rev</description>
+                </action>
+              </actions>
+              <confirm_message>Start homing (reverse) on $(P)$(M)?</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>homf</name>
+              <text>Home Fwd</text>
+              <x>158</x>
+              <y>158</y>
+              <width>138</width>
+              <height>28</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M).HOMF</pv_name>
+                  <value>1</value>
+                  <description>Home Fwd</description>
+                </action>
+              </actions>
+              <confirm_message>Start homing (forward) on $(P)$(M)?</confirm_message>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l7</name>
+              <text>Homed</text>
+              <x>12</x>
+              <y>196</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>homed</name>
+              <pv_name>$(P)$(M).ATHM</pv_name>
+              <x>106</x>
+              <y>196</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l8</name>
+              <text>HLS / LLS</text>
+              <x>150</x>
+              <y>196</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>hls</name>
+              <pv_name>$(P)$(M).HLS</pv_name>
+              <x>244</x>
+              <y>196</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>lls</name>
+              <pv_name>$(P)$(M).LLS</pv_name>
+              <x>270</x>
+              <y>196</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>l9</name>
+              <text>DIR</text>
+              <x>12</x>
+              <y>224</y>
+              <width>90</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textupdate" version="2.0.0">
+              <name>dir</name>
+              <pv_name>$(P)$(M).DIR</pv_name>
+              <x>106</x>
+              <y>224</y>
+              <width>100</width>
+              <height>22</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>1</horizontal_alignment>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>Enable / Power / Loop status</name>
+            <x>448</x>
+            <y>8</y>
+            <width>444</width>
+            <height>320</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>e1</name>
+              <text>_able (record disable)</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="combo" version="2.0.0">
+              <name>able</name>
+              <pv_name>$(P)$(M)_able</pv_name>
+              <x>210</x>
+              <y>30</y>
+              <width>120</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>e2</name>
+              <text>.CNEN (drive AXISON/OFF req.)</text>
+              <x>12</x>
+              <y>60</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="combo" version="2.0.0">
+              <name>cnen</name>
+              <pv_name>$(P)$(M).CNEN</pv_name>
+              <x>210</x>
+              <y>60</y>
+              <width>120</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>e3</name>
+              <text>.DISP (puts disabled)</text>
+              <x>12</x>
+              <y>90</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>disp</name>
+              <pv_name>$(P)$(M).DISP</pv_name>
+              <x>210</x>
+              <y>90</y>
+              <width>22</width>
+              <height>22</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>e4</name>
+              <text>.DISA (processing disabled)</text>
+              <x>12</x>
+              <y>118</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>disa</name>
+              <pv_name>$(P)$(M).DISA</pv_name>
+              <x>210</x>
+              <y>118</y>
+              <width>22</width>
+              <height>22</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>hdr1</name>
+              <text>Axis-on / closed-loop indicators (readback)</text>
+              <x>12</x>
+              <y>152</y>
+              <width>400</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):ACTIVE</name>
+              <text>:ACTIVE  (asyn TML_ACTIVE, initialized+powered)</text>
+              <x>12</x>
+              <y>176</y>
+              <width>290</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):ACTIVE</name>
+              <pv_name>$(P)$(M):ACTIVE</pv_name>
+              <x>306</x>
+              <y>176</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MSR:CLOOP</name>
+              <text>:MSR:CLOOP  (MSR.13, control loops active)</text>
+              <x>12</x>
+              <y>200</y>
+              <width>290</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MSR:CLOOP</name>
+              <pv_name>$(P)$(M):MSR:CLOOP</pv_name>
+              <x>306</x>
+              <y>200</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:AXON</name>
+              <text>:SRL:AXON  (SRL.15, power stage ON)</text>
+              <x>12</x>
+              <y>224</y>
+              <width>290</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:AXON</name>
+              <pv_name>$(P)$(M):SRL:AXON</pv_name>
+              <x>306</x>
+              <y>224</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):ENABLE_OFF</name>
+              <text>:ENABLE_OFF  (hw Enable input deasserted)</text>
+              <x>12</x>
+              <y>248</y>
+              <width>290</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):ENABLE_OFF</name>
+              <pv_name>$(P)$(M):ENABLE_OFF</pv_name>
+              <x>306</x>
+              <y>248</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>hdr2</name>
+              <text>Power-on failure alarm</text>
+              <x>12</x>
+              <y>280</y>
+              <width>400</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):POWERON_FAILED</name>
+              <text>:POWERON_FAILED  (last AXISON attempt timed out)</text>
+              <x>12</x>
+              <y>304</y>
+              <width>290</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):POWERON_FAILED</name>
+              <pv_name>$(P)$(M):POWERON_FAILED</pv_name>
+              <x>306</x>
+              <y>304</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>Status Bits</name>
+        <children>
+          <widget type="group" version="3.0.0">
+            <name>SRH — Status Register High</name>
+            <x>8</x>
+            <y>8</y>
+            <width>430</width>
+            <height>162</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:FERR</name>
+              <text>SRH.0  Following error</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:FERR</name>
+              <pv_name>$(P)$(M):SRH:FERR</pv_name>
+              <x>206</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:OVSP</name>
+              <text>SRH.1  Over-speed</text>
+              <x>12</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:OVSP</name>
+              <pv_name>$(P)$(M):SRH:OVSP</pv_name>
+              <x>206</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:OCUR</name>
+              <text>SRH.2  Over-current</text>
+              <x>12</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:OCUR</name>
+              <pv_name>$(P)$(M):SRH:OCUR</pv_name>
+              <x>206</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:I2T</name>
+              <text>SRH.3  I2T limit</text>
+              <x>12</x>
+              <y>102</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:I2T</name>
+              <pv_name>$(P)$(M):SRH:I2T</pv_name>
+              <x>206</x>
+              <y>102</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:OTMP</name>
+              <text>SRH.4  Over-temperature</text>
+              <x>12</x>
+              <y>126</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:OTMP</name>
+              <pv_name>$(P)$(M):SRH:OTMP</pv_name>
+              <x>206</x>
+              <y>126</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:UVLT</name>
+              <text>SRH.5  Under-voltage</text>
+              <x>222</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:UVLT</name>
+              <pv_name>$(P)$(M):SRH:UVLT</pv_name>
+              <x>416</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:OVLT</name>
+              <text>SRH.6  Over-voltage</text>
+              <x>222</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:OVLT</name>
+              <pv_name>$(P)$(M):SRH:OVLT</pv_name>
+              <x>416</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:INPOS</name>
+              <text>SRH.9  In-position</text>
+              <x>222</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:INPOS</name>
+              <pv_name>$(P)$(M):SRH:INPOS</pv_name>
+              <x>416</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:MCOMPLETE</name>
+              <text>SRH.10 Motion complete</text>
+              <x>222</x>
+              <y>102</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:MCOMPLETE</name>
+              <pv_name>$(P)$(M):SRH:MCOMPLETE</pv_name>
+              <x>416</x>
+              <y>102</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRH:FLT</name>
+              <text>SRH.15 General fault</text>
+              <x>222</x>
+              <y>126</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRH:FLT</name>
+              <pv_name>$(P)$(M):SRH:FLT</pv_name>
+              <x>416</x>
+              <y>126</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>SRL — Status Register Low</name>
+            <x>448</x>
+            <y>8</y>
+            <width>444</width>
+            <height>138</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:GFLT</name>
+              <text>SRL.8  Global fault</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:GFLT</name>
+              <pv_name>$(P)$(M):SRL:GFLT</pv_name>
+              <x>206</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:AFLT</name>
+              <text>SRL.9  Axis fault</text>
+              <x>12</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:AFLT</name>
+              <pv_name>$(P)$(M):SRL:AFLT</pv_name>
+              <x>206</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:MC</name>
+              <text>SRL.10 Motion complete</text>
+              <x>12</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:MC</name>
+              <pv_name>$(P)$(M):SRL:MC</pv_name>
+              <x>206</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:HOME</name>
+              <text>SRL.11 Home found</text>
+              <x>12</x>
+              <y>102</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:HOME</name>
+              <pv_name>$(P)$(M):SRL:HOME</pv_name>
+              <x>206</x>
+              <y>102</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:LSP</name>
+              <text>SRL.13 Positive limit</text>
+              <x>222</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:LSP</name>
+              <pv_name>$(P)$(M):SRL:LSP</pv_name>
+              <x>416</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:LSN</name>
+              <text>SRL.14 Negative limit</text>
+              <x>222</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:LSN</name>
+              <pv_name>$(P)$(M):SRL:LSN</pv_name>
+              <x>416</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):SRL:AXON</name>
+              <text>SRL.15 Axis ON</text>
+              <x>222</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):SRL:AXON</name>
+              <pv_name>$(P)$(M):SRL:AXON</pv_name>
+              <x>416</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>MER — Motion Error Register</name>
+            <x>8</x>
+            <y>182</y>
+            <width>430</width>
+            <height>186</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:FERR</name>
+              <text>MER.0  Following error</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:FERR</name>
+              <pv_name>$(P)$(M):MER:FERR</pv_name>
+              <x>206</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:OCUR</name>
+              <text>MER.1  Over-current</text>
+              <x>12</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:OCUR</name>
+              <pv_name>$(P)$(M):MER:OCUR</pv_name>
+              <x>206</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:I2T</name>
+              <text>MER.2  I2T fault</text>
+              <x>12</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:I2T</name>
+              <pv_name>$(P)$(M):MER:I2T</pv_name>
+              <x>206</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:OVSP</name>
+              <text>MER.3  Over-speed</text>
+              <x>12</x>
+              <y>102</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:OVSP</name>
+              <pv_name>$(P)$(M):MER:OVSP</pv_name>
+              <x>206</x>
+              <y>102</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:POVF</name>
+              <text>MER.4  Position overflow</text>
+              <x>12</x>
+              <y>126</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:POVF</name>
+              <pv_name>$(P)$(M):MER:POVF</pv_name>
+              <x>206</x>
+              <y>126</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:OVLT</name>
+              <text>MER.5  Over-voltage</text>
+              <x>12</x>
+              <y>150</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:OVLT</name>
+              <pv_name>$(P)$(M):MER:OVLT</pv_name>
+              <x>206</x>
+              <y>150</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:LSP</name>
+              <text>MER.6  Positive limit switch</text>
+              <x>222</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:LSP</name>
+              <pv_name>$(P)$(M):MER:LSP</pv_name>
+              <x>416</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:LSN</name>
+              <text>MER.7  Negative limit switch</text>
+              <x>222</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:LSN</name>
+              <pv_name>$(P)$(M):MER:LSN</pv_name>
+              <x>416</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:HOME</name>
+              <text>MER.8  Home switch</text>
+              <x>222</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:HOME</name>
+              <pv_name>$(P)$(M):MER:HOME</pv_name>
+              <x>416</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:UVLT</name>
+              <text>MER.9  Under-voltage</text>
+              <x>222</x>
+              <y>102</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:UVLT</name>
+              <pv_name>$(P)$(M):MER:UVLT</pv_name>
+              <x>416</x>
+              <y>102</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MER:OTMP</name>
+              <text>MER.10 Over-temperature</text>
+              <x>222</x>
+              <y>126</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MER:OTMP</name>
+              <pv_name>$(P)$(M):MER:OTMP</pv_name>
+              <x>416</x>
+              <y>126</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>MCR — Motion Command Register (decoded)</name>
+            <x>448</x>
+            <y>158</y>
+            <width>444</width>
+            <height>90</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):MCR:AXON</name>
+              <text>MCR.15 Axis ON</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):MCR:AXON</name>
+              <pv_name>$(P)$(M):MCR:AXON</pv_name>
+              <x>206</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>mcrmode_l</name>
+              <text>MCR bits 0-3 (motion mode)</text>
+              <x>12</x>
+              <y>58</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textupdate" version="2.0.0">
+              <name>mcrmode</name>
+              <pv_name>$(P)$(M):MCR:MODE</pv_name>
+              <x>210</x>
+              <y>58</y>
+              <width>80</width>
+              <height>22</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>1</horizontal_alignment>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>PCR — Protections Control Register (decoded)</name>
+            <x>448</x>
+            <y>260</y>
+            <width>444</width>
+            <height>114</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:OCUR</name>
+              <text>PCR.8  Over-current trip</text>
+              <x>12</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:OCUR</name>
+              <pv_name>$(P)$(M):PCR:OCUR</pv_name>
+              <x>206</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:I2T</name>
+              <text>PCR.9  I2T trip</text>
+              <x>12</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:I2T</name>
+              <pv_name>$(P)$(M):PCR:I2T</pv_name>
+              <x>206</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:OVLT</name>
+              <text>PCR.10 Over-voltage trip</text>
+              <x>12</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:OVLT</name>
+              <pv_name>$(P)$(M):PCR:OVLT</pv_name>
+              <x>206</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:UVLT</name>
+              <text>PCR.11 Under-voltage trip</text>
+              <x>222</x>
+              <y>30</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:UVLT</name>
+              <pv_name>$(P)$(M):PCR:UVLT</pv_name>
+              <x>416</x>
+              <y>30</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:TEMP1</name>
+              <text>PCR.12 TEMP1 trip</text>
+              <x>222</x>
+              <y>54</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:TEMP1</name>
+              <pv_name>$(P)$(M):PCR:TEMP1</pv_name>
+              <x>416</x>
+              <y>54</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>lbl_$(P)$(M):PCR:TEMP2</name>
+              <text>PCR.13 TEMP2 trip</text>
+              <x>222</x>
+              <y>78</y>
+              <width>190</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>led_$(P)$(M):PCR:TEMP2</name>
+              <pv_name>$(P)$(M):PCR:TEMP2</pv_name>
+              <x>416</x>
+              <y>78</y>
+              <width>22</width>
+              <height>20</height>
+            </widget>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>Raw Registers</name>
+        <children>
+          <widget type="label" version="2.0.0">
+            <name>rr_hdr</name>
+            <text>Raw 16-bit registers (bit 15 = leftmost). Slow-polled (every 10th cycle) except SRH/SRL/MER.</text>
+            <x>12</x>
+            <y>8</y>
+            <width>860</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_SRH</name>
+            <text>SRH</text>
+            <x>12</x>
+            <y>40</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_SRH</name>
+            <pv_name>$(P)$(M):SRH</pv_name>
+            <x>76</x>
+            <y>40</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_SRH</name>
+            <pv_name>$(P)$(M):SRH</pv_name>
+            <x>180</x>
+            <y>40</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_SRL</name>
+            <text>SRL</text>
+            <x>12</x>
+            <y>76</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_SRL</name>
+            <pv_name>$(P)$(M):SRL</pv_name>
+            <x>76</x>
+            <y>76</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_SRL</name>
+            <pv_name>$(P)$(M):SRL</pv_name>
+            <x>180</x>
+            <y>76</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_MER</name>
+            <text>MER</text>
+            <x>12</x>
+            <y>112</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_MER</name>
+            <pv_name>$(P)$(M):MER</pv_name>
+            <x>76</x>
+            <y>112</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_MER</name>
+            <pv_name>$(P)$(M):MER</pv_name>
+            <x>180</x>
+            <y>112</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_MCR</name>
+            <text>MCR</text>
+            <x>12</x>
+            <y>148</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_MCR</name>
+            <pv_name>$(P)$(M):MCR</pv_name>
+            <x>76</x>
+            <y>148</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_MCR</name>
+            <pv_name>$(P)$(M):MCR</pv_name>
+            <x>180</x>
+            <y>148</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_MSR</name>
+            <text>MSR</text>
+            <x>12</x>
+            <y>184</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_MSR</name>
+            <pv_name>$(P)$(M):MSR</pv_name>
+            <x>76</x>
+            <y>184</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_MSR</name>
+            <pv_name>$(P)$(M):MSR</pv_name>
+            <x>180</x>
+            <y>184</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_ISR</name>
+            <text>ISR</text>
+            <x>12</x>
+            <y>220</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_ISR</name>
+            <pv_name>$(P)$(M):ISR</pv_name>
+            <x>76</x>
+            <y>220</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_ISR</name>
+            <pv_name>$(P)$(M):ISR</pv_name>
+            <x>180</x>
+            <y>220</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rrl_PCR</name>
+            <text>PCR</text>
+            <x>12</x>
+            <y>256</y>
+            <width>60</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>rrv_PCR</name>
+            <pv_name>$(P)$(M):PCR</pv_name>
+            <x>76</x>
+            <y>256</y>
+            <width>90</width>
+            <height>26</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="byte_monitor" version="2.0.0">
+            <name>rrb_PCR</name>
+            <pv_name>$(P)$(M):PCR</pv_name>
+            <x>180</x>
+            <y>256</y>
+            <width>480</width>
+            <height>26</height>
+            <numBits>16</numBits>
+            <startBit>0</startBit>
+            <horizontal>true</horizontal>
+            <square>true</square>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>rr_hdr2</name>
+            <text>Other readbacks</text>
+            <x>12</x>
+            <y>302</y>
+            <width>300</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>apos_l</name>
+            <text>APOS (encoder position)</text>
+            <x>12</x>
+            <y>328</y>
+            <width>190</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>apos</name>
+            <pv_name>$(P)$(M):APOS</pv_name>
+            <x>210</x>
+            <y>328</y>
+            <width>120</width>
+            <height>22</height>
+            <precision>3</precision>
+            <show_units>false</show_units>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>cspd_l</name>
+            <text>CSPD (commanded speed)</text>
+            <x>12</x>
+            <y>356</y>
+            <width>190</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>cspd</name>
+            <pv_name>$(P)$(M):CSPD</pv_name>
+            <x>210</x>
+            <y>356</y>
+            <width>120</width>
+            <height>22</height>
+            <precision>2</precision>
+            <show_units>false</show_units>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>potm_l</name>
+            <text>POTM (potentiometer/ADC)</text>
+            <x>12</x>
+            <y>384</y>
+            <width>190</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>potm</name>
+            <pv_name>$(P)$(M):POTM</pv_name>
+            <x>210</x>
+            <y>384</y>
+            <width>120</width>
+            <height>22</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>enoff_l</name>
+            <text>ENABLE_OFF (hw Enable input deasserted)</text>
+            <x>12</x>
+            <y>412</y>
+            <width>190</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="led" version="2.0.0">
+            <name>enoff</name>
+            <pv_name>$(P)$(M):ENABLE_OFF</pv_name>
+            <x>210</x>
+            <y>412</y>
+            <width>22</width>
+            <height>22</height>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>setup_l</name>
+            <text>SETUP (loaded setup file)</text>
+            <x>12</x>
+            <y>440</y>
+            <width>190</width>
+            <height>20</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>0</horizontal_alignment>
+            <vertical_alignment>1</vertical_alignment>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>setup</name>
+            <pv_name>$(P)$(M):SETUP</pv_name>
+            <x>210</x>
+            <y>440</y>
+            <width>400</width>
+            <height>22</height>
+            <font>
+              <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+              </font>
+            </font>
+            <horizontal_alignment>1</horizontal_alignment>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>Faults &amp; Commands</name>
+        <children>
+          <widget type="group" version="3.0.0">
+            <name>Fault status</name>
+            <x>8</x>
+            <y>8</y>
+            <width>880</width>
+            <height>110</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="label" version="2.0.0">
+              <name>fault_l</name>
+              <text>FAULT text</text>
+              <x>12</x>
+              <y>30</y>
+              <width>100</width>
+              <height>20</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="textupdate" version="2.0.0">
+              <name>faulttxt</name>
+              <pv_name>$(P)$(M):FAULT</pv_name>
+              <x>116</x>
+              <y>30</y>
+              <width>500</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>1</horizontal_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>fault_led</name>
+              <pv_name>$(P)$(M):SRH:FLT</pv_name>
+              <x>630</x>
+              <y>30</y>
+              <width>22</width>
+              <height>24</height>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>fault_led_l</name>
+              <text>SRH fault bit</text>
+              <x>656</x>
+              <y>30</y>
+              <width>120</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>pofail_l</name>
+              <text>:POWERON_FAILED</text>
+              <x>12</x>
+              <y>66</y>
+              <width>150</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+            <widget type="led" version="2.0.0">
+              <name>pofail_led</name>
+              <pv_name>$(P)$(M):POWERON_FAILED</pv_name>
+              <x>166</x>
+              <y>66</y>
+              <width>22</width>
+              <height>24</height>
+            </widget>
+            <widget type="textupdate" version="2.0.0">
+              <name>pofail_txt</name>
+              <pv_name>$(P)$(M):POWERON_FAILED</pv_name>
+              <x>196</x>
+              <y>66</y>
+              <width>200</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>1</horizontal_alignment>
+            </widget>
+            <widget type="label" version="2.0.0">
+              <name>pofail_hint</name>
+              <text>clear with Reset Faults below</text>
+              <x>404</x>
+              <y>66</y>
+              <width>220</width>
+              <height>24</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <horizontal_alignment>0</horizontal_alignment>
+              <vertical_alignment>1</vertical_alignment>
+            </widget>
+          </widget>
+          <widget type="group" version="3.0.0">
+            <name>Commands</name>
+            <x>8</x>
+            <y>126</y>
+            <width>880</width>
+            <height>140</height>
+            <style>3</style>
+            <font>
+              <font name="Default" family="Liberation Sans" style="BOLD" size="12.0">
+              </font>
+            </font>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_rstfault</name>
+              <text>Reset Faults</text>
+              <x>12</x>
+              <y>30</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:RSTFAULT</pv_name>
+                  <value>1</value>
+                  <description>Reset Faults</description>
+                </action>
+              </actions>
+              <confirm_message>Reset faults on $(P)$(M)?</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_save</name>
+              <text>Save to EEPROM</text>
+              <x>172</x>
+              <y>30</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:SAVE</pv_name>
+                  <value>1</value>
+                  <description>Save to EEPROM</description>
+                </action>
+              </actions>
+              <confirm_message>Save current parameters to EEPROM on $(P)$(M)?
+This writes flash memory.</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_reset</name>
+              <text>Reset Drive</text>
+              <x>332</x>
+              <y>30</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:RESET</pv_name>
+                  <value>1</value>
+                  <description>Reset Drive</description>
+                </action>
+              </actions>
+              <confirm_message>Reset the drive on $(P)$(M)?
+This will interrupt motion and re-initialize the axis.</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_fhome</name>
+              <text>Force Home</text>
+              <x>492</x>
+              <y>30</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:FHOME</pv_name>
+                  <value>1</value>
+                  <description>Force Home</description>
+                </action>
+              </actions>
+              <confirm_message>Force-home $(P)$(M) (set position=0, mark homed) without moving?
+Only use when physically at the home switch.</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_clrenc</name>
+              <text>Clear Encoder</text>
+              <x>12</x>
+              <y>66</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:CLRENC</pv_name>
+                  <value>1</value>
+                  <description>Clear encoder counter</description>
+                </action>
+              </actions>
+              <confirm_message>Clear only the encoder counter (APOS) on $(P)$(M)?
+Stop the motor before changing a counter.</confirm_message>
+            </widget>
+            <widget type="action_button" version="3.0.0">
+              <name>cmd_clrstep</name>
+              <text>Clear Step Counter</text>
+              <x>172</x>
+              <y>66</y>
+              <width>150</width>
+              <height>30</height>
+              <font>
+                <font name="Default" family="Liberation Sans" style="REGULAR" size="12.0">
+                </font>
+              </font>
+              <actions>
+                <action type="write_pv">
+                  <pv_name>$(P)$(M):CMD:CLRSTEP</pv_name>
+                  <value>1</value>
+                  <description>Clear step counter</description>
+                </action>
+              </actions>
+              <confirm_message>Clear only the step/trajectory counter (TPOS) on $(P)$(M)?
+Stop the motor before changing a counter.</confirm_message>
+            </widget>
+          </widget>
+        </children>
+      </tab>
+    </tabs>
+  </widget>
+</display>

@@ -10,6 +10,7 @@
 #   ADDR  - Axis number (0-based)
 #   DIR   - Direction (Pos/Neg)
 #   MRES  - Motor resolution (EGU/step)
+#   ARES  - Encoder resolution (EGU/count; defaults to MRES)
 #   PREC  - Display precision
 #   EGU   - Engineering units
 #   DHLM  - Dial high limit
@@ -36,6 +37,7 @@ record(motor, "$(P)$(M)") {
   field(BACC, "$(BACC=0)")
   field(OUT,  "@asyn($(PORT),$(ADDR))")
   field(MRES, "$(MRES)")
+  field(ERES, "$(ARES=$(MRES))")
   field(PREC, "$(PREC=3)")
   field(EGU,  "$(EGU=ustep)")
   field(DHLM, "$(DHLM=0)")
@@ -135,6 +137,95 @@ record(longin, "$(P)$(M):ISR") {
   field(SCAN, "I/O Intr")
 }
 
+# Hardware Enable input (drive-specific named TML variable, not a fixed
+# register -- resolved from this axis's setup file variable map, e.g.
+# tml_lib/config/*.t.zip -> variables.cfg: ENABLE_OFF).
+# 1 = the hardware Enable line (setup.cfg Port[4] "IN4/EN" on iPOS3604-class
+# drives) is currently deasserted, which silently blocks AXISON/TS_Power
+# from completing even though no SRH/MER fault bit is raised.
+record(longin, "$(P)$(M):ENABLE_OFF") {
+  field(DESC, "TML hardware Enable input deasserted")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_ENABLE_OFF")
+  field(SCAN, "I/O Intr")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+
+# Protections Control Register (drive-specific named TML variable, not a
+# fixed register -- resolved from this axis's setup file variable map).
+# Bits 8-13 report which protection is currently tripped: over-current,
+# I2T, over/under-voltage, TEMP1/TEMP2. Not covered by SRH/SRL/MER, so a
+# trip here is otherwise invisible and can silently block AXISON.
+record(longin, "$(P)$(M):PCR") {
+  field(DESC, "TML Protections Control Register")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_PCR")
+  field(SCAN, "I/O Intr")
+}
+
+# PCR bits 8-13 decoded individually
+record(calc, "$(P)$(M):PCR:OCUR") {
+  field(DESC, "TML PCR over-current trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>8)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+record(calc, "$(P)$(M):PCR:I2T") {
+  field(DESC, "TML PCR I2T trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>9)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+record(calc, "$(P)$(M):PCR:OVLT") {
+  field(DESC, "TML PCR over-voltage trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>10)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+record(calc, "$(P)$(M):PCR:UVLT") {
+  field(DESC, "TML PCR under-voltage trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>11)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+record(calc, "$(P)$(M):PCR:TEMP1") {
+  field(DESC, "TML PCR TEMP1 trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>12)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+record(calc, "$(P)$(M):PCR:TEMP2") {
+  field(DESC, "TML PCR TEMP2 trip")
+  field(INPA, "$(P)$(M):PCR CP MS")
+  field(CALC, "(A>>13)&1")
+  field(HIGH, "1")
+  field(HSV,  "MAJOR")
+}
+
+# Latched by the driver when a powerOn() attempt (TS_Power(TRUE), issued on
+# any move/jog/home or .CNEN=Enable) times out waiting for SRL AXIS_ON --
+# i.e. the drive accepted AXISON but never confirmed the power stage came
+# up, with no fault bit anywhere to explain why (see drvTmlMotor.cpp
+# powerOn()). Previously this was visible only in the IOC log; nothing on
+# the motor record's own STAT/SEVR/MSTA reflects it. Cleared automatically
+# on the next successful powerOn(), on powerOff(), or by :CMD:RSTFAULT.
+record(bi, "$(P)$(M):POWERON_FAILED") {
+  field(DESC, "TML power-on (AXISON) attempt timed out")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_POWERON_FAILED")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "OK")
+  field(ONAM, "Power-On Failed")
+  field(ZSV,  "NO_ALARM")
+  field(OSV,  "MAJOR")
+}
+
 # Actual encoder position (APOS) — high-resolution readback
 record(ai, "$(P)$(M):APOS") {
   field(DESC, "TML actual encoder position")
@@ -210,6 +301,28 @@ record(bo, "$(P)$(M):CMD:FHOME") {
   field(OUT,  "@asyn($(PORT),$(ADDR))TML_FORCE_HOME")
   field(ZNAM, "Idle")
   field(ONAM, "Home")
+  field(HIGH, "0.5")
+}
+
+# Clear only the encoder counter (APOS).  The step/trajectory counter is
+# deliberately left unchanged.
+record(bo, "$(P)$(M):CMD:CLRENC") {
+  field(DESC, "Clear encoder counter")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_CLEAR_ENCODER")
+  field(ZNAM, "Idle")
+  field(ONAM, "Clear")
+  field(HIGH, "0.5")
+}
+
+# Clear only the step/trajectory counter (TPOS).  The encoder counter is
+# deliberately left unchanged.
+record(bo, "$(P)$(M):CMD:CLRSTEP") {
+  field(DESC, "Clear step counter")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR))TML_CLEAR_STEPS")
+  field(ZNAM, "Idle")
+  field(ONAM, "Clear")
   field(HIGH, "0.5")
 }
 
@@ -433,6 +546,19 @@ record(calc, "$(P)$(M):MCR:AXON") {
   field(DESC, "TML MCR axis on bit")
   field(INPA, "$(P)$(M):MCR CP MS")
   field(CALC, "(A>>15)&1")
+}
+
+# MSR bit 13 — AXISON condition: control loops (current/speed/position)
+# and PWM output are active. Per Technosoft TML manual (MotionChip II UM,
+# sec. 2.1.8): "During AXISON condition, MSR bit 13 is set (MSR.13 = 1)".
+# This is the drive-reported closed-loop-control-active status, distinct
+# from .CNEN (which only requests AXISON/AXISOFF via TS_Power) and from
+# the axis's configured loop type (open-loop stepper vs. closed-loop
+# servo), which is fixed by the setup file and not runtime-readable here.
+record(calc, "$(P)$(M):MSR:CLOOP") {
+  field(DESC, "TML MSR closed-loop active (AXISON)")
+  field(INPA, "$(P)$(M):MSR CP MS")
+  field(CALC, "(A>>13)&1")
 }
 
 # Direction/offset/resolution forwarding to driver

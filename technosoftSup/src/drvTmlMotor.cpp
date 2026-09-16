@@ -126,6 +126,11 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     createParam(TML_RESET_DRIVE_String,  asynParamInt32,    &tmlResetDrive_);
     createParam(TML_POTM_String,         asynParamFloat64,  &tmlPOTM_);
     createParam(TML_FORCE_HOME_String,   asynParamInt32,    &tmlForceHome_);
+    createParam(TML_CLEAR_ENCODER_String, asynParamInt32,   &tmlClearEncoder_);
+    createParam(TML_CLEAR_STEPS_String,  asynParamInt32,    &tmlClearSteps_);
+    createParam(TML_ENABLE_OFF_String,   asynParamInt32,    &tmlEnableOff_);
+    createParam(TML_PCR_String,          asynParamInt32,    &tmlPCR_);
+    createParam(TML_POWERON_FAILED_String, asynParamInt32,  &tmlPowerOnFailed_);
 
     /* Open the TML communication channel (shared by all axes) */
     char devName[256];
@@ -218,6 +223,8 @@ asynStatus TmlController::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (pAxis->selectAxis() == asynSuccess)
             TS_ResetFault();
         tmlLock_.unlock();
+        setIntegerParam(axisNo, tmlPowerOnFailed_, 0);
+        callParamCallbacks(axisNo);
         return asynSuccess;
     }
     if (function == tmlSaveEeprom_ && value && pAxis) {
@@ -238,6 +245,32 @@ asynStatus TmlController::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
     if (function == tmlForceHome_ && value && pAxis) {
         return pAxis->forceHome();
+    }
+    if ((function == tmlClearEncoder_ || function == tmlClearSteps_) &&
+        value && pAxis) {
+        const char *counter = (function == tmlClearEncoder_) ? "APOS" : "TPOS";
+        DBG(1, "Axis %d: clear %s counter", axisNo, counter);
+
+        tmlLock_.lock();
+        asynStatus status = pAxis->selectAxis();
+        if (status == asynSuccess && !TS_SetLongVariable(counter, 0)) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                      "TmlAxis[%d]: failed to clear %s counter: %s\n",
+                      axisNo, counter, TS_GetLastErrorText());
+            status = asynError;
+        }
+        tmlLock_.unlock();
+
+        if (status == asynSuccess) {
+            if (function == tmlClearEncoder_) {
+                setDoubleParam(axisNo, tmlAPOS_, 0.0);
+                setDoubleParam(axisNo, motorEncoderPosition_, 0.0);
+            } else {
+                setDoubleParam(axisNo, motorPosition_, 0.0);
+            }
+            callParamCallbacks(axisNo);
+        }
+        return status;
     }
 
     return asynMotorController::writeInt32(pasynUser, value);
@@ -632,6 +665,7 @@ asynStatus TmlAxis::powerOn()
             powered_ = true;
             activated_ = true;
             setIntegerParam(pC_->tmlActive_, 1);
+            setIntegerParam(pC_->tmlPowerOnFailed_, 0);
             callParamCallbacks();
             DBG(2, "Axis %d powered ON", axisNo_);
             return asynSuccess;
@@ -641,6 +675,8 @@ asynStatus TmlAxis::powerOn()
 
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
               "TmlAxis[%d]: power-on timeout\n", axisNo_);
+    setIntegerParam(pC_->tmlPowerOnFailed_, 1);
+    callParamCallbacks();
     return asynError;
 }
 
@@ -652,6 +688,7 @@ asynStatus TmlAxis::powerOff()
     TS_Power(FALSE);
     powered_ = false;
     setIntegerParam(pC_->tmlActive_, 0);
+    setIntegerParam(pC_->tmlPowerOnFailed_, 0);
     callParamCallbacks();
     DBG(2, "Axis %d powered OFF", axisNo_);
     return asynSuccess;
@@ -1117,11 +1154,24 @@ asynStatus TmlAxis::poll(bool *moving)
     WORD mcr_w = 0, msr_w = 0, isr_w = 0, srh_w = 0;
     long cspd_raw = 0;
     short potm_raw = 0;
+    short enableOff_raw = 0;
+    short pcr_raw = 0;
     if (srlFault) {
         TS_ReadStatus(REG_SRH, srh_w);
         srh = (unsigned short)srh_w;
     }
-    /* Read MCR/MSR/ISR/CSPD/POTM only every 10th poll to reduce bus traffic */
+    /* Read MCR/MSR/ISR/CSPD/POTM/ENABLE_OFF/PCR only every 10th poll to
+     * reduce bus traffic. ENABLE_OFF and PCR are drive-specific named TML
+     * variables (not fixed registers) resolved from this axis's setup
+     * file variable map (see tml_lib/config/<setup>.t.zip -> variables.cfg):
+     *   ENABLE_OFF: 1 = the hardware Enable input (setup.cfg Port[4]
+     *     "IN4/EN" on this drive) is currently deasserted.
+     *   PCR: Protections Control Register; bits 8-13 report which
+     *     protection (over-current, I2T, over/under-voltage, TEMP1/TEMP2)
+     *     is currently tripped. Neither is covered by the fixed SRH/SRL/
+     *     MER registers, so a trip here is invisible without this read —
+     *     and either could silently block AXISON/TS_Power from completing
+     *     (see setClosedLoop/powerOn "power-on timeout"). */
     bool slowPoll = (pollCount_ % 10) == 0;
     if (slowPoll) {
         TS_ReadStatus(REG_MCR, mcr_w);
@@ -1129,6 +1179,8 @@ asynStatus TmlAxis::poll(bool *moving)
         TS_ReadStatus(REG_ISR, isr_w);
         TS_GetLongVariable("CSPD", cspd_raw);
         TS_GetIntVariable("POTM", potm_raw);
+        TS_GetIntVariable("ENABLE_OFF", enableOff_raw);
+        TS_GetIntVariable("PCR", pcr_raw);
     }
     pollCount_++;
 
@@ -1169,6 +1221,8 @@ asynStatus TmlAxis::poll(bool *moving)
         setIntegerParam(pC_->tmlMCR_, (int)mcr_w);
         setIntegerParam(pC_->tmlMSR_, (int)msr_w);
         setIntegerParam(pC_->tmlISR_, (int)isr_w);
+        setIntegerParam(pC_->tmlEnableOff_, (int)enableOff_raw);
+        setIntegerParam(pC_->tmlPCR_, (int)pcr_raw);
     }
 
     /* Publish raw registers */
