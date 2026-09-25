@@ -486,6 +486,9 @@ every 10 s, and each axis shows `CONN_STATUS=BAD`, `FAULT="Channel not
 connected"` and a comms error on the motor record. When the channel is back,
 every configured axis re-runs its setup (LoadSetup/SetupAxis/DriveInitialisation)
 on its next poll and `CONN_STATUS` returns to `OK`.
+In `opi/tml_debug.bob` the channel state is shown by the **Channel** LED in
+the title bar (visible on every tab, red when BAD) and, with the `CONN_MSG`
+error text, in the **Fault status** group of the *Faults & Commands* tab.
 
 For command-line use:
 
