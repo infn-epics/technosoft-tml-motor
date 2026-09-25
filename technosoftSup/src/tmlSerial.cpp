@@ -1805,10 +1805,11 @@ BOOL TS_MoveAbsolute(long AbsPosition, double Speed, double Acceleration,
     /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
     if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
 
-    /* 5b. FROM_REFERENCE: set MCR bit 5 if requested (trajectory starts
-     *     from reference position rather than measured position) */
+    /* 5b. FROM_REFERENCE: TUM1 (MCR bit 14) — trajectory starts from the
+     *     reference position rather than the measured one.  Required for
+     *     open-loop setups where APOS does not track the motor. */
     if (ReferenceBase == FROM_REFERENCE) {
-        if (!g_activeCh->sendMcrConfig(0xFFFF, MCR_BIT_REF_BASE)) goto fail;
+        if (!g_activeCh->sendMcrConfig(TML_MCR_TUM1_MASK, TML_MCR_TUM1_VAL)) goto fail;
     }
 
     /* Pre-UPD diagnostic: capture MER + MER_MASK state right before UPD */
@@ -1888,9 +1889,9 @@ BOOL TS_MoveRelative(long RelPosition, double Speed, double Acceleration,
     /* 5. MODE PP3 (position profile, all loops: position+speed+current) */
     if (!g_activeCh->sendMcrConfig(TML_MCR_MODE_PP3_MASK, TML_MCR_MODE_PP3_VAL)) goto fail;
 
-    /* 5b. FROM_REFERENCE: set MCR bit 5 if requested */
+    /* 5b. FROM_REFERENCE: TUM1 (MCR bit 14) */
     if (ReferenceBase == FROM_REFERENCE) {
-        if (!g_activeCh->sendMcrConfig(0xFFFF, MCR_BIT_REF_BASE)) goto fail;
+        if (!g_activeCh->sendMcrConfig(TML_MCR_TUM1_MASK, TML_MCR_TUM1_VAL)) goto fail;
     }
 
     /* 6. Update */

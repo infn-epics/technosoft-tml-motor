@@ -221,6 +221,13 @@ typedef char*       LPSTR;
 #define TML_MCR_MODE_SP1_MASK 0xBBC1
 #define TML_MCR_MODE_SP1_VAL  0x8301
 
+/* TUM1: Target Update Mode 1 (MCR bit 14 = 1) — keep the reference
+ * position/speed instead of resetting TPOS = APOS on the next UPD.
+ * Must be sent AFTER the MODE instruction (MODE clears bit 14 = TUM0)
+ * and BEFORE UPD.  (TML Manual: TUM0/TUM1 binary code) */
+#define TML_MCR_TUM1_MASK     0xFFFF
+#define TML_MCR_TUM1_VAL      0x4000
+
 /* ================================================================= */
 /*      MCR Bit Definitions                                          */
 /* ================================================================= */
@@ -235,7 +242,7 @@ typedef char*       LPSTR;
 #define MCR_MODE_MASK     0x000F     /* Mode bits mask */
 
 /* Reference bits */
-#define MCR_BIT_REF_BASE  (1 << 5)  /* 0=FROM_MEASURE, 1=FROM_REFERENCE */
+#define MCR_BIT_TUM       (1 << 14) /* 0=TUM0 (FROM_MEASURE), 1=TUM1 (FROM_REFERENCE) */
 #define MCR_BIT_RELATIVE  (1 << 7)  /* 0=absolute, 1=relative */
 
 /* ================================================================= */

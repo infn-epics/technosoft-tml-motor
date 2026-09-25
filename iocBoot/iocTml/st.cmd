@@ -27,6 +27,9 @@ var drvTmlDebug 1
 # SPARC TML channel 1 (10 axes via Moxa NPort @ scsparcmoxa001.lnf.infn.it:4001)
 #< tml-ch1.cmd
 
+# BTF TML motor line (14 axes @ 192.168.190.29:4001)
+#< btf.cmd
+
 cd "${TOP}/iocBoot/${IOC}"
 
 iocInit
