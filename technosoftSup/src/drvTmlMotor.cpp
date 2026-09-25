@@ -104,6 +104,7 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     , channelFd_(-1)
     , hostId_(hostId)
     , baudRate_(baudRate > 0 ? baudRate : 9600)
+    , connOk_(-1)
 {
     strncpy(devicePath_, devicePath, sizeof(devicePath_) - 1);
     devicePath_[sizeof(devicePath_) - 1] = '\0';
@@ -131,6 +132,8 @@ TmlController::TmlController(const char *portName, const char *devicePath,
     createParam(TML_ENABLE_OFF_String,   asynParamInt32,    &tmlEnableOff_);
     createParam(TML_PCR_String,          asynParamInt32,    &tmlPCR_);
     createParam(TML_POWERON_FAILED_String, asynParamInt32,  &tmlPowerOnFailed_);
+    createParam(TML_CONN_STATUS_String,  asynParamInt32,    &tmlConnStatus_);
+    createParam(TML_CONN_MSG_String,     asynParamOctet,    &tmlConnMsg_);
 
     /* Open the TML communication channel (shared by all axes) */
     char devName[256];
@@ -143,15 +146,18 @@ TmlController::TmlController(const char *portName, const char *devicePath,
 
     tmlLock_.lock();
     channelFd_ = TS_OpenChannel(devName, (BYTE)chType, (BYTE)hostId_, (DWORD)baudRate_);
+    epicsTimeGetCurrent(&lastReconnect_);
     tmlLock_.unlock();
 
     if (channelFd_ < 0) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                   "%s: TS_OpenChannel('%s', type=%d) FAILED: %s\n",
                   driverName, devName, chType, TS_GetLastErrorText());
+        setConnStatus(false, TS_GetLastErrorText());
     } else {
         DBG(1, "Channel opened, fd=%d type=%s", channelFd_,
             chType == CHANNEL_XPORT_IP ? "XPORT_IP" : "RS232");
+        setConnStatus(true, "");
     }
 
     /* Create axis objects (un-configured; user calls TmlAxisConfig for each) */
@@ -161,6 +167,87 @@ TmlController::TmlController(const char *portName, const char *devicePath,
 
     /* Start the poller */
     startPoller(movingPoll, idlePoll, 2);
+}
+
+/* Publish connection state on every axis address so each axis can
+ * expose $(P)$(M):CONN_STATUS.  Logs only on OK<->BAD transitions. */
+void TmlController::setConnStatus(bool ok, const char *msg)
+{
+    int state = ok ? 1 : 0;
+    char cur[256] = "";
+    getStringParam(0, tmlConnMsg_, sizeof(cur), cur);
+    if (state == connOk_ && strcmp(cur, msg) == 0)
+        return;
+
+    if (state != connOk_) {
+        if (ok)
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                      "%s: port %s CONNECTION OK to '%s' (fd=%d)\n",
+                      driverName, portName, devicePath_, channelFd_);
+        else
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                      "%s: port %s CONNECTION BAD to '%s': %s "
+                      "(retrying every 10 s)\n",
+                      driverName, portName, devicePath_, msg);
+    }
+    connOk_ = state;
+
+    for (int ax = 0; ax < numAxes_; ax++) {
+        setIntegerParam(ax, tmlConnStatus_, state);
+        setStringParam(ax, tmlConnMsg_, msg);
+        callParamCallbacks(ax);
+    }
+}
+
+/* Reopen the channel if it is closed.  Rate-limited to one attempt every
+ * 10 s because a TCP connect can block up to 5 s.  Must hold tmlLock_. */
+bool TmlController::ensureChannel()
+{
+    if (channelFd_ >= 0)
+        return true;
+
+    epicsTimeStamp now;
+    epicsTimeGetCurrent(&now);
+    if (lastReconnect_.secPastEpoch > 0 &&
+        epicsTimeDiffInSeconds(&now, &lastReconnect_) < 10.0)
+        return false;
+    lastReconnect_ = now;
+
+    char devName[256];
+    tmlDevName(devicePath_, devName, sizeof(devName));
+    int chType = tmlChannelType(devicePath_);
+    DBG(1, "Channel closed — trying to reopen '%s'", devicePath_);
+    int fd = TS_OpenChannel(devName, (BYTE)chType, (BYTE)hostId_, (DWORD)baudRate_);
+    if (fd < 0) {
+        setConnStatus(false, TS_GetLastErrorText());
+        return false;
+    }
+    channelFd_ = fd;
+
+    /* Every axis must redo LoadSetup/SetupAxis/DriveInitialisation on
+     * the new channel; the per-axis poll takes care of it. */
+    for (int ax = 0; ax < numAxes_; ax++) {
+        TmlAxis *pAx = getTmlAxis(ax);
+        if (!pAx || !pAx->configured_) continue;
+        pAx->setupIdx_        = -1;
+        pAx->needsReinit_     = true;
+        pAx->reinitCountdown_ = 0;
+        pAx->reinitBackoff_   = 1;
+        pAx->activated_       = false;
+        pAx->powered_         = false;
+        pAx->stopping_        = false;
+    }
+    setConnStatus(true, "");
+    return true;
+}
+
+/* Called by the asynMotorController poller once per cycle, before the axes */
+asynStatus TmlController::poll()
+{
+    tmlLock_.lock();
+    ensureChannel();
+    tmlLock_.unlock();
+    return asynSuccess;
 }
 
 TmlController::~TmlController()
@@ -325,12 +412,6 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
                                bool ignoreLSP, bool ignoreLSN,
                                int scrValue)
 {
-    if (pC_->channelFd_ < 0) {
-        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-                  "TmlAxis::configure: channel not open\n");
-        return asynError;
-    }
-
     axisId_ = axisId;
     ignoreLSP_ = ignoreLSP;
     ignoreLSN_ = ignoreLSN;
@@ -355,6 +436,25 @@ asynStatus TmlAxis::configure(int axisId, const char *setupFile,
      * triggered by the poller between unlock() and the assignment
      * would skip this axis and its TML_lib setup would be lost. */
     configured_ = true;
+
+    if (pC_->channelFd_ < 0) {
+        /* Channel down at boot: keep the axis configured so it gets
+         * initialised once TmlController::poll() reopens the channel. */
+        activated_       = false;
+        needsReinit_     = true;
+        reinitCountdown_ = 0;
+        reinitBackoff_   = 1;
+        pC_->tmlLock_.unlock();
+        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
+                  "TmlAxis[%d]: channel not open, will init after reconnect\n",
+                  axisNo_);
+        pC_->setStringParam(axisNo_, pC_->tmlSetupFile_, setupFile_);
+        setIntegerParam(pC_->tmlActive_, 0);
+        setIntegerParam(pC_->motorStatusCommsError_, 1);
+        setStringParam(pC_->tmlFaultText_, "Channel not connected");
+        callParamCallbacks();
+        return asynSuccess;
+    }
 
     /* Select our channel */
     TS_SelectChannel(pC_->channelFd_);
@@ -573,10 +673,12 @@ asynStatus TmlAxis::selectAxis()
             DBG(0, "Axis %d: reconnect failed: %s", axisNo_, TS_GetLastErrorText());
             pC_->channelFd_ = -1;
             epicsTimeGetCurrent(&pC_->lastReconnect_);
+            pC_->setConnStatus(false, TS_GetLastErrorText());
             return asynError;
         }
         pC_->channelFd_ = newFd;
         epicsTimeGetCurrent(&pC_->lastReconnect_);
+        pC_->setConnStatus(true, "");
         DBG(0, "Axis %d: reconnected, new fd=%d", axisNo_, newFd);
         if (!TS_SelectChannel(pC_->channelFd_)) {
             DBG(0, "Axis %d: TS_SelectChannel after reconnect failed: %s",
@@ -1078,6 +1180,14 @@ asynStatus TmlAxis::poll(bool *moving)
 
     /* If initialisation failed at startup, retry with exponential backoff */
     if (needsReinit_) {
+        if (pC_->channelFd_ < 0) {
+            /* Channel down: TmlController::poll() is retrying the open */
+            setIntegerParam(pC_->tmlActive_,             0);
+            setIntegerParam(pC_->motorStatusCommsError_, 1);
+            setStringParam(pC_->tmlFaultText_, "Channel not connected");
+            callParamCallbacks();
+            return asynSuccess;
+        }
         if (reinitCountdown_ > 0) {
             reinitCountdown_--;
             setIntegerParam(pC_->motorStatusCommsError_, 1);

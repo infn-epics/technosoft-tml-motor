@@ -43,7 +43,10 @@ class TmlAxis;
 #define TML_PCR_String          "TML_PCR"          /* asynInt32, R   — Protections Control Register (bits 8-13: protection trip status) */
 #define TML_POWERON_FAILED_String "TML_POWERON_FAILED" /* asynInt32, R — 1=last powerOn() attempt timed out waiting for SRL AXIS_ON */
 
-#define NUM_TML_PARAMS 21
+#define TML_CONN_STATUS_String  "TML_CONN_STATUS"  /* asynInt32, R   — 1=communication channel open (OK), 0=closed/failed (BAD) */
+#define TML_CONN_MSG_String     "TML_CONN_MSG"     /* asynOctet, R   — last connection error text ("" when OK) */
+
+#define NUM_TML_PARAMS 23
 
 /* ================================================================= */
 /*                         TmlController                              */
@@ -86,6 +89,9 @@ public:
     int channelFd()  const { return channelFd_; }
     int hostId()     const { return hostId_; }
 
+    /* Controller-level poll: reopens the channel while it is down */
+    asynStatus poll() override;
+
     /* Report */
     void report(FILE *fp, int level) override;
 
@@ -96,6 +102,12 @@ protected:
     char devicePath_[256];
     epicsMutex tmlLock_;
     epicsTimeStamp lastReconnect_;   /* rate-limit reconnects */
+    int connOk_;                     /* last published CONN_STATUS (-1 = never published) */
+
+    /* Open the channel if closed (rate-limited).  Must hold tmlLock_. */
+    bool ensureChannel();
+    /* Publish CONN_STATUS/CONN_MSG on every axis address; logs on change. */
+    void setConnStatus(bool ok, const char *msg);
 
     /* Extra parameter indices */
     int tmlSRH_;
@@ -119,6 +131,8 @@ protected:
     int tmlEnableOff_;
     int tmlPCR_;
     int tmlPowerOnFailed_;
+    int tmlConnStatus_;
+    int tmlConnMsg_;
 
     friend class TmlAxis;
 };
@@ -188,6 +202,8 @@ private:
     int  pollCount_;           /* Per-axis poll counter for throttled reads */
 
     char setupFile_[512];
+
+    friend class TmlController;   /* ensureChannel() flags axes for reinit */
 
     /* Replay LoadSetup+SetupAxis+SelectAxis+DriveInitialisation on current channel.
      * Called both from configure() and from selectAxis() after a channel reconnect.

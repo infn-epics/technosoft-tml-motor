@@ -614,25 +614,31 @@ int TmlChannel::connectTcp(const char *hostPort)
 
     /* Try each resolved address */
     int sock = -1;
+    int lastErr = 0;          /* real failure reason (errno is stale after select) */
     for (struct addrinfo *rp = res; rp; rp = rp->ai_next) {
         sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sock < 0) continue;
+        if (sock < 0) { lastErr = errno; continue; }
 
         /* Set a 5-second connect timeout via non-blocking + select */
         int flags = fcntl(sock, F_GETFL, 0);
         fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
         int cret = ::connect(sock, rp->ai_addr, rp->ai_addrlen);
+        if (cret < 0) lastErr = errno;
         if (cret < 0 && errno == EINPROGRESS) {
             fd_set wfds;
             FD_ZERO(&wfds);
             FD_SET(sock, &wfds);
             struct timeval tv = {5, 0};
-            if (select(sock + 1, nullptr, &wfds, nullptr, &tv) > 0) {
+            int sret = select(sock + 1, nullptr, &wfds, nullptr, &tv);
+            if (sret > 0) {
                 int err = 0;
                 socklen_t len = sizeof(err);
                 getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &len);
                 if (err == 0) cret = 0;
+                else lastErr = err;
+            } else {
+                lastErr = (sret == 0) ? ETIMEDOUT : errno;
             }
         }
 
@@ -655,7 +661,7 @@ int TmlChannel::connectTcp(const char *hostPort)
     freeaddrinfo(res);
 
     if (sock < 0) {
-        setError("TCP connect to '%s' failed: %s", hostPort, strerror(errno));
+        setError("TCP connect to '%s' failed: %s", hostPort, strerror(lastErr));
     }
     return sock;
 }

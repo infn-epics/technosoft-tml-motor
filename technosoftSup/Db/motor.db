@@ -107,6 +107,27 @@ record(bi, "$(P)$(M):ACTIVE") {
   field(OSV,  "NO_ALARM")
 }
 
+# Controller communication channel state (shared by all axes on the port)
+record(bi, "$(P)$(M):CONN_STATUS") {
+  field(DESC, "TML channel connection")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_CONN_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "BAD")
+  field(ONAM, "OK")
+  field(ZSV,  "MAJOR")
+  field(OSV,  "NO_ALARM")
+}
+
+# Last connection error (empty when connected)
+record(lsi, "$(P)$(M):CONN_MSG") {
+  field(DESC, "TML connection error")
+  field(DTYP, "asynOctetRead")
+  field(SIZV, "256")
+  field(INP,  "@asyn($(PORT),$(ADDR))TML_CONN_MSG")
+  field(SCAN, "I/O Intr")
+}
+
 # Human-readable fault description string
 record(stringin, "$(P)$(M):FAULT") {
   field(DESC, "TML fault description")

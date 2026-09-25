@@ -459,6 +459,8 @@ command records.
 | `$(P)$(M):APOS` | ai | `TML_APOS` | Actual encoder position |
 | `$(P)$(M):CSPD` | ai | `TML_CSPD` | Commanded speed (IU/s) |
 | `$(P)$(M):POTM` | ai | `TML_POTM` | Potentiometer/ADC readback |
+| `$(P)$(M):CONN_STATUS` | bi | `TML_CONN_STATUS` | Controller channel state (OK/BAD, MAJOR alarm when BAD) — shared by all axes on the port |
+| `$(P)$(M):CONN_MSG` | lsi | `TML_CONN_MSG` | Last connection error text (empty when connected) |
 
 **TML command records (write 1 to trigger):**
 
@@ -477,6 +479,13 @@ before writing `1` to its command PV. Stop the motor before using either
 command: clearing `APOS` changes only the encoder coordinate, while clearing
 `TPOS` changes only the trajectory/step coordinate. The two counters can
 therefore temporarily disagree by design.
+
+**Channel reconnect:** if the serial/TCP channel cannot be opened at boot or
+drops later, the IOC keeps running. The controller retries the open at most
+every 10 s, and each axis shows `CONN_STATUS=BAD`, `FAULT="Channel not
+connected"` and a comms error on the motor record. When the channel is back,
+every configured axis re-runs its setup (LoadSetup/SetupAxis/DriveInitialisation)
+on its next poll and `CONN_STATUS` returns to `OK`.
 
 For command-line use:
 
