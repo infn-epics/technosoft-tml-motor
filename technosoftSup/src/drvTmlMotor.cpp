@@ -43,8 +43,8 @@ int drvTmlDebug = 0;
 extern "C" { epicsExportAddress(int, drvTmlDebug); }
 
 #define DBG(level, fmt, ...) \
-    do { if (drvTmlDebug >= (level)) \
-        printf("drvTml [%s:%d] " fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+    do { if (drvTmlDebug >= (level)) { char ts_[32]; \
+        printf("%s drvTml [%s:%d] " fmt "\n", tmlLogTimestamp(ts_, sizeof(ts_)), __func__, __LINE__, ##__VA_ARGS__); } \
     } while(0)
 
 /* Detect channel type from device path:

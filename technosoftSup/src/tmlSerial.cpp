@@ -51,8 +51,8 @@
 extern int drvTmlDebug;
 
 #define DBG_SER(level, fmt, ...) \
-    do { if (drvTmlDebug >= (level)) \
-        printf("tmlSerial [%s:%d] " fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+    do { if (drvTmlDebug >= (level)) { char ts_[32]; \
+        printf("%s tmlSerial [%s:%d] " fmt "\n", tmlLogTimestamp(ts_, sizeof(ts_)), __func__, __LINE__, ##__VA_ARGS__); } \
     } while(0)
 
 /* ================================================================= */

@@ -22,6 +22,21 @@
 #include <map>
 #include <mutex>
 #include <termios.h>
+#include <cstdio>
+#include <ctime>
+#include <sys/time.h>
+
+/* Fill buf with a local "YYYY-MM-DD HH:MM:SS.mmm" timestamp for log lines. */
+static inline const char *tmlLogTimestamp(char *buf, size_t len)
+{
+    struct timeval tv;
+    struct tm tmv;
+    gettimeofday(&tv, NULL);
+    localtime_r(&tv.tv_sec, &tmv);
+    size_t n = strftime(buf, len, "%Y-%m-%d %H:%M:%S", &tmv);
+    snprintf(buf + n, len - n, ".%03ld", (long)(tv.tv_usec / 1000));
+    return buf;
+}
 
 /* ================================================================= */
 /*                     Types matching TML_lib                        */

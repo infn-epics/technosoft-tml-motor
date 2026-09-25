@@ -612,3 +612,30 @@ The driver polls each axis at the configured rate (moving poll / idle poll).
 Status registers (SRL, SRH, MER, MCR, MSR, ISR) and auxiliary readbacks
 (APOS, CSPD, POTM) are updated via asyn parameter callbacks on every poll
 cycle (POTM and others on a slower 1-in-10 cycle to reduce bus traffic).
+
+---
+
+## Debug Logging
+
+Driver and serial-protocol tracing is controlled by the `drvTmlDebug`
+variable, settable from `st.cmd` or at runtime from the iocsh:
+
+```
+var drvTmlDebug 1
+```
+
+| Level | Output |
+|-------|--------|
+| 0 | Errors (ACK timeouts, unexpected responses, setup/zip failures) and channel reconnects |
+| 1 | Plus channel/axis setup, commands, state changes and protocol recovery (drained RX bytes, retries) |
+| 2 | Plus every register read/write (`ReadData16/32`, `WriteData16/32`, `SelectAxis`, …) |
+| 3 | Plus raw TX/RX frames and individual ACKs (very verbose) |
+
+Every line is prefixed with a local timestamp (millisecond resolution),
+the source (`drvTml` = motor driver, `tmlSerial` = serial/TCP protocol) and
+the `[function:line]` that emitted it:
+
+```
+2026-09-25 09:07:13.868 tmlSerial [sendMessage:981] Drained 15 stale RX bytes before send
+2026-09-25 09:07:14.371 tmlSerial [setError:692] ERROR: ACK timeout (500 ms, skipped 0 bytes)
+```
